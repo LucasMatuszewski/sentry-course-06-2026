@@ -1,11 +1,5 @@
 plugins {
     java
-    // Spring Boot 3.5 instead of 4.x: sentry-spring-boot-4-starter 8.46.0
-    // is internally the SB3-jakarta auto-config and references the
-    // org.springframework.boot.web.client.RestClientCustomizer class
-    // which was removed in Spring Boot 4.1. Sentry's real Spring Boot 4
-    // starter is not stable in 8.46.0. The Sentry-side teaching points
-    // are identical between SB3.5 and SB4.
     id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.6"
     id("io.sentry.jvm.gradle") version "5.5.0"
@@ -28,18 +22,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    // sentry-spring-boot-starter-jakarta is the SB3 (jakarta.*) Sentry
-    // integration. It auto-wires the exception resolver, OpenTelemetry
-    // tracing, breadcrumbs, and the sentry.* property binding.
-    // Maven coordinates: io.sentry:sentry-spring-boot-starter-jakarta
-    // (suffix -jakarta on the artifact, NOT infix -jakarta-starter).
+    // Pinned to 8.11.1 to match the bundled sentry-core that the
+    // io.sentry.jvm.gradle:5.5.0 plugin injects on the classpath. See
+    // TDD.md for the version-mismatch crash this avoids.
     //
-    // Version 8.11.1 is pinned to match the bundled sentry-core that the
-    // io.sentry.jvm.gradle:5.5.0 plugin injects on the classpath. A higher
-    // version of sentry-spring-boot-starter-jakarta references newer
-    // SentryOptions inner classes (e.g. Metrics.BeforeSendMetricCallback)
-    // that do not exist in sentry-core 8.11.x, which makes Spring's
-    // condition evaluation fail with ClassNotFoundException at boot.
+    // Trade-off accepted for workshop stability: the Sentry.logger()
+    // Logs API (>=8.15.1) and sentry-async-profiler (>=8.23.0) are not
+    // available at this SDK line. Tracing, breadcrumbs, custom spans,
+    // and Insights all still work. The slide accordion documents this.
     implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.11.1")
     implementation("io.sentry:sentry-logback:8.11.1")
 
