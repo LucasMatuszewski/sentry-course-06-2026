@@ -29,6 +29,13 @@ Core exercises require a browser and access to the DevPowers training organizati
 
 Every timed exercise has a zero-install alternative based on prepared Sentry events.
 
+The repository pins Node.js 24.15.0 LTS in `mise.toml`. With [Mise](https://mise.jdx.dev/):
+
+```powershell
+mise install
+mise exec -- node --version
+```
+
 ## Sentry project mapping
 
 | Application | Sentry project |

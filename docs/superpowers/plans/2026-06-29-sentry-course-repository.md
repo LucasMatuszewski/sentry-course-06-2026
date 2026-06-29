@@ -2,7 +2,7 @@
 
 > **Execution workflow:** use `superpowers:executing-plans`; delegate only with explicit user approval.
 
-**Goal:** Deliver a course-ready public repository, practical PolicyLab demo system, exercises, current-source guides, and interactive HTML materials for the 2026-06-30 workshop.
+**Goal:** Deliver a course-ready public repository, practical PolicyLab demo system, exercises, current-source guides, and interactive HTML materials for the 2026-06-29 workshop.
 
 **Architecture:** Angular and Spring Boot 4 form the primary hands-on path. The reviewed AI Studio Android app is the main mobile demo, official Android/iOS samples are references, and GitHub Actions plus Coolify provide the live release path.
 

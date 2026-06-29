@@ -12,6 +12,11 @@ Materials are primarily English because Sentry documentation and UI terminology 
 6. Hands-on scenarios in `exercises/`
 7. Interactive trainer materials in `slides/`
 
+Reference controls:
+
+- [Source validation register](source-validation.md)
+- [Manual trainer review gate](manual-review-checklist.md)
+
 The original two-day offer remains available as `Course-agenda-program-szkolenia-Sentry_2026.md` and PDF. The one-day agenda is the delivery source of truth.
 
 ## Participant paths
