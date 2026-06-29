@@ -22,6 +22,20 @@ Use an organization-owned integration token restricted to the required projects.
 
 Never store a token in YAML/Jenkinsfile, echo it, include it in an artifact, or expose it to untrusted pull-request builds.
 
+## How the source-map part works
+
+The build tool creates source maps; the Sentry SDK does not. In these course examples, `npm run build -- --configuration production` is expected to write the web build output into `dist/policylab-web`, including compiled JavaScript files and matching `.map` files when source maps are enabled for that build configuration.
+
+`dist/policylab-web` is not a Sentry standard directory. It is just the example application's build-output folder. Sentry CLI only processes the directory path passed on the command line; it does not automatically search a universal default location for source maps.
+
+That means the examples assume all of the following are true:
+
+- the production build really generates source maps;
+- the generated `.map` files are stored under `dist/policylab-web`;
+- the upload step runs against the exact same build output, without rebuilding in between.
+
+If your real project writes source maps somewhere else, update the path passed to `sourcemaps inject` and `sourcemaps upload` to match your actual build output.
+
 ## Files
 
 - `bitbucket-pipelines.example.yml`: illustrative Bitbucket Cloud build and Angular source-map upload.
@@ -35,6 +49,7 @@ The examples intentionally stop before deployment. The deploy-record command app
 - [ ] Confirm current Sentry CLI and SDK/bundler-plugin versions.
 - [ ] Replace fictional organization/project names.
 - [ ] Match output directory and component release convention.
+- [ ] Ensure the production build generates source maps when your release process requires them.
 - [ ] Restrict execution to trusted branches/tags.
 - [ ] Use the real build once; never rebuild after source-artifact upload.
 - [ ] Add approval and deployment using the organization's platform controls.

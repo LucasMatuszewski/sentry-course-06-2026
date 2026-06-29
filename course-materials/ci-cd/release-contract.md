@@ -14,6 +14,14 @@
 
 `SENTRY_RELEASE` must be generated once and consumed by both runtime configuration and upload commands. Use the full commit SHA or another immutable build identifier.
 
+## How source maps get to Sentry
+
+For web builds, source maps normally come from the frontend build tool or bundler, not from the Sentry SDK itself. In this course material, the example app build is expected to write compiled assets and matching `.map` files under `dist/policylab-web`.
+
+`dist/policylab-web` is just the build-output folder used by this example. Sentry CLI does not auto-discover a universal source-map directory; it processes the explicit path you pass to `sourcemaps inject` and `sourcemaps upload`.
+
+If your project emits source maps into a different directory, change the CLI path accordingly. If your production build disables source maps, the upload step will not provide the artifacts Sentry needs for JavaScript de-minification.
+
 ## Illustrative CLI sequence
 
 ```sh
@@ -25,10 +33,12 @@ npx --yes @sentry/cli@latest releases new "$SENTRY_RELEASE"
 npx --yes @sentry/cli@latest releases set-commits "$SENTRY_RELEASE" --auto --ignore-missing
 
 # Build once with SENTRY_RELEASE available to the app build.
+# The build tool should emit JS bundles and matching .map files.
 npm ci
 npm run build -- --configuration production
 
 # Use the bundler plugin/wizard when possible. These commands show the debug-ID flow.
+# The path below must point at the actual build output containing the .map files.
 npx --yes @sentry/cli@latest sourcemaps inject dist/policylab-web
 npx --yes @sentry/cli@latest sourcemaps upload \
   --org "$SENTRY_ORG" \
