@@ -34,6 +34,7 @@ Slajdy i narracja są po **polsku**. Słownictwo Sentry, nazwy SDK i polecenia C
 - [Manual trainer review gate](manual-review-checklist.md) — checklista zanim slajdy uznane za final
 - [Tokens, secrets and Coolify deploy walkthrough](guides/setup-tokens-and-deploy.md)
 - [Coolify bootstrap — 3-minute UI checklist](guides/coolify-bootstrap.md)
+- [CODE-TOUR.md](CODE-TOUR.md) — ściągawka trenera: który plik repo pokazać w którym module, z permalinkami do GitHuba i zakresami linii
 
 Oryginalna dwudniowa oferta dostępna jako [`Course-agenda-program-szkolenia-Sentry_2026.md`](Course-agenda-program-szkolenia-Sentry_2026.md) i PDF. Skrócona agenda 1-dniowa jest źródłem prawdy dla dostarczenia kursu.
 

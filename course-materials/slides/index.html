@@ -361,14 +361,15 @@
 
   <!-- 1  How this deck guides the day -->
   <section class="slide" id="slide-1">
-    <h2>How to drive this deck</h2>
-    <h1>Trainer-coach slides</h1>
+    <h2>Jak prowadzić ten deck</h2>
+    <h1>Slajdy + drugi monitor z kodem</h1>
     <ul>
-      <li>Each module has a <strong>Trainer panel</strong> with what to open in DevPowers, what CLI command to run, what to say, what to check.</li>
-      <li>Reminder banners pop at <code>11:00</code>, <code>13:00</code>, <code>13:30</code> (survey), <code>15:30</code>.</li>
-      <li>Survey priorities are tagged <span class="pri">SURVEY</span>; audience-workflow links tagged <span class="pri audience">JIRA WORKFLOW</span>.</li>
-      <li>Keys: <code>← →</code> / <code>Space</code> nav · <code>F</code> fullscreen · <code>P</code> print · <code>#slide-N</code> deep link.</li>
-      <li>Rehearsal: append <code>?clock=10:55</code> to test the 11:00 banner now.</li>
+      <li>Każdy moduł ma <strong>Trainer panel</strong> z linkami do DevPowers, kodem do otwarcia, CLI do uruchomienia, narracją.</li>
+      <li>Reminder banners odpalają o <code>11:00</code>, <code>13:00</code>, <code>13:30</code> (ankieta), <code>15:30</code>.</li>
+      <li>Priorytety z ankiety są oznaczone <span class="pri">SURVEY</span>; workflow Jiry — <span class="pri audience">JIRA WORKFLOW</span>.</li>
+      <li>Klawisze: <code>← →</code> / <code>Space</code> nav · <code>F</code> fullscreen · <code>P</code> print · <code>#slide-N</code> deep link.</li>
+      <li>Rehearsal: dopisz <code>?clock=10:55</code> żeby przetestować banner 11:00 od razu.</li>
+      <li><strong>Drugi monitor:</strong> trzymaj otwarte <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/course-materials/CODE-TOUR.md" target="_blank" rel="noopener">CODE-TOUR.md</a> — to ściągawka "który plik pokazać kiedy", z permalinkami do GitHuba.</li>
     </ul>
   </section>
 
@@ -681,8 +682,14 @@ sentry project view devpowers/android</pre>
         </ul>
       </div>
       <div class="card check">
-        <h3>Exercise</h3>
-        <p><strong>Exercise 03</strong> — Add safe custom tags/context without leaking PII. Path: <code>course-materials/exercises/03-safe-context-privacy.md</code></p>
+        <h3>Exercise + kod do pokazania</h3>
+        <p><strong>Exercise 03</strong> — bezpieczne custom tags/context bez PII. <code>course-materials/exercises/03-safe-context-privacy.md</code></p>
+        <p>Otwórz w GitHub na drugim ekranie:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/src/main.ts#L7-L24" target="_blank" rel="noopener">Angular SDK init (main.ts#L7-L24)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/src/app/app.config.ts#L15-L27" target="_blank" rel="noopener">Angular DI (app.config.ts#L15-L27)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/api-spring/src/main/resources/application.properties" target="_blank" rel="noopener">Spring application.properties</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/api-spring/build.gradle.kts#L33-L38" target="_blank" rel="noopener">Spring Gradle plugin block</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/android/app/src/main/java/com/example/SentryDemoApplication.kt#L11-L48" target="_blank" rel="noopener">Android manual init</a>
       </div>
     </div>
   </section>
@@ -761,12 +768,15 @@ $env:DEMO_SCENARIOS_ENABLED="true"
         </ul>
       </div>
       <div class="card check">
-        <h3>Check</h3>
+        <h3>Check + kod do pokazania</h3>
         <ul>
-          <li>One Angular error visible in Issues with <code>release=angular@0.1.0</code>.</li>
-          <li>"Pobierz wycenę" → one Spring transaction visible in Traces, joined to a browser trace.</li>
-          <li>If verify event fails: walk <code>course-materials/guides/setup-angular.md</code> "Common failures".</li>
+          <li>Jeden Angular error w Issues z <code>release=angular@0.1.0</code>.</li>
+          <li>"Pobierz wycenę" → jedna Spring transaction w Traces, połączona z browser trace.</li>
         </ul>
+        <p>Otwórz w GitHub:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/src/app/quote-api.service.ts" target="_blank" rel="noopener">QuoteApiService (cały plik)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/src/app/app.ts" target="_blank" rel="noopener">app.ts — przycisk verify error + quote</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/api-spring/src/main/java/com/policylab/api/quote/QuoteController.java" target="_blank" rel="noopener">QuoteController.java (scenariusze)</a>
       </div>
     </div>
   </section>
@@ -951,8 +961,13 @@ sentry-cli releases finalize "$REL"</pre>
         </ul>
       </div>
       <div class="card check">
-        <h3>Exercise</h3>
-        <p><strong>Exercise 04</strong> — Release trend before/after fix. Path: <code>course-materials/exercises/04-source-artifacts-release-trend.md</code></p>
+        <h3>Exercise + kod do pokazania</h3>
+        <p><strong>Exercise 04</strong> — Release trend before/after fix. <code>course-materials/exercises/04-source-artifacts-release-trend.md</code></p>
+        <p>Otwórz w GitHub na drugim ekranie:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/.github/workflows/release.yml" target="_blank" rel="noopener">release.yml (cały — 4 joby)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/Dockerfile" target="_blank" rel="noopener">Angular Dockerfile — source maps upload + strip</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/api-spring/build.gradle.kts#L33-L38" target="_blank" rel="noopener">Sentry Gradle plugin block</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/course-materials/guides/setup-tokens-and-deploy.md" target="_blank" rel="noopener">Tokens &amp; deploy guide</a>
       </div>
     </div>
   </section>
@@ -1014,12 +1029,15 @@ git push</pre>
         </ul>
       </div>
       <div class="card check">
-        <h3>Check</h3>
+        <h3>Check + kod do pokazania</h3>
         <ul>
-          <li>Workflow's <em>deploy</em> step shows "Healthy after Xs."</li>
-          <li>Sentry release page shows the deploy marker.</li>
-          <li>One trace in Sentry crosses Angular → Spring spans in the same waterfall.</li>
+          <li>Krok <em>deploy</em> w workflow: "Healthy after Xs."</li>
+          <li>Sentry release page: deploy marker widoczny.</li>
+          <li>Jeden trace w Sentry: Angular → Spring spans w jednym waterfall.</li>
         </ul>
+        <p>Otwórz:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/compose.yaml" target="_blank" rel="noopener">compose.yaml (deployable stack)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/nginx.conf#L19-L29" target="_blank" rel="noopener">nginx /api proxy (trace headers przelatują)</a>
       </div>
     </div>
   </section>
@@ -1132,8 +1150,13 @@ sentry replay list --period 1d</pre>
         </ol>
       </div>
       <div class="card check">
-        <h3>Exercise</h3>
-        <p><strong>Exercise 05</strong> — Distributed trace, identify the slow span. Path: <code>course-materials/exercises/05-distributed-trace.md</code></p>
+        <h3>Exercise + kod do pokazania</h3>
+        <p><strong>Exercise 05</strong> — Distributed trace, znajdź slow span. <code>course-materials/exercises/05-distributed-trace.md</code></p>
+        <p>Otwórz w GitHub:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/src/main.ts#L13" target="_blank" rel="noopener">browserTracingIntegration (main.ts#L13)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/src/main.ts#L20" target="_blank" rel="noopener">tracePropagationTargets (main.ts#L20)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/api-spring/src/main/java/com/policylab/api/telemetry/SentryQuoteTelemetry.java" target="_blank" rel="noopener">SentryQuoteTelemetry (custom slow span)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/api-spring/src/main/java/com/policylab/api/quote/QuoteController.java#L68-L73" target="_blank" rel="noopener">LOGGER.info → Sentry Logs (QuoteController#L68-L73)</a>
       </div>
     </div>
   </section>
@@ -1324,8 +1347,12 @@ sentry proguard upload --org devpowers \
         </ol>
       </div>
       <div class="card check">
-        <h3>Exercise</h3>
-        <p><strong>Exercise 07</strong> — Filter Android events by device + release + custom config. Path: <code>course-materials/exercises/07-android-filtering-feedback.md</code></p>
+        <h3>Exercise + kod do pokazania</h3>
+        <p><strong>Exercise 07</strong> — filtr Android po device + release + custom config. <code>course-materials/exercises/07-android-filtering-feedback.md</code></p>
+        <p>Otwórz w GitHub:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/android/app/src/main/java/com/example/SentryDemoApplication.kt" target="_blank" rel="noopener">SentryDemoApplication.kt (cały — 50 linii)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/android/app/src/main/AndroidManifest.xml#L18-L31" target="_blank" rel="noopener">AndroidManifest sentry meta-data</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/android/CODE_REVIEW.md" target="_blank" rel="noopener">CODE_REVIEW.md — co znaleźliśmy w AI Studio app</a>
       </div>
     </div>
   </section>

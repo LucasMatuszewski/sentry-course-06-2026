@@ -22,6 +22,7 @@ Wszystkie dane są syntetyczne — fikcyjna domena ubezpieczeniowa **PolicyLab**
 | Słownik pojęć Sentry | [`course-materials/glossary.md`](course-materials/glossary.md) |
 | Tokeny + deploy (Coolify, GitHub Actions) | [`course-materials/guides/setup-tokens-and-deploy.md`](course-materials/guides/setup-tokens-and-deploy.md) |
 | Lista zadań przed kursem (trainer-only) | [`NEXT-STEPS.md`](NEXT-STEPS.md) |
+| Ściągawka trenera: kod do pokazania per moduł | [`course-materials/CODE-TOUR.md`](course-materials/CODE-TOUR.md) |
 
 ---
 
