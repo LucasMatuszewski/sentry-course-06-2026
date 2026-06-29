@@ -1180,13 +1180,34 @@ gh workflow run release.yml --ref main</pre>
 
   <section class="slide" id="slide-38">
     <h2>Session Replay</h2>
-    <h1>What the user actually saw, with masking</h1>
+    <h1>Co user faktycznie widział, z maskowaniem</h1>
     <ul>
-      <li>10% of sessions sampled, 100% on error — already in <code>main.ts</code>.</li>
-      <li><code>maskAllText: true</code> + <code>blockAllMedia: true</code> by default. Unmask explicitly with CSS class — never the other way around.</li>
-      <li>Replay link appears in the Issue right rail. One click → DOM playback aligned to the moment of error.</li>
-      <li>Cost model: per-session storage. Sample low in prod; rely on the on-error trigger.</li>
+      <li>10% sesji + 100% on-error — już w <code>main.ts</code>.</li>
+      <li><code>maskAllText: true</code> + <code>blockAllMedia: true</code> domyślnie. Unmask explicite przez klasę CSS — nigdy odwrotnie.</li>
+      <li>Link do Replay pojawia się w prawym rail Issue. Jeden klik → odtwarzanie DOM zsynchronizowane z momentem błędu.</li>
+      <li>Model kosztu: per-session storage. Sample niskie w prod; opieraj się na on-error.</li>
     </ul>
+    <details>
+      <summary>Performance, profiling, measurements — co działa, co Sentry ubił</summary>
+      <p><strong>Co JEST dostępne i działa w naszych aplikacjach:</strong></p>
+      <ul>
+        <li><strong>Distributed tracing</strong> — Angular → Spring → DB (gdyby było) w jednym waterfall. Wpięte przez <code>browserTracingIntegration</code> + <code>tracePropagationTargets</code> + auto-instrumentation w Spring starter. <code>tracesSampleRate=1.0</code> w szkoleniu, w prod cel 0.05–0.20.</li>
+        <li><strong>Web Vitals</strong> (LCP, CLS, FCP, INP, TTFB) — darmowe z <code>browserTracingIntegration</code>. Idą do Sentry → Insights → Frontend → Web Vitals.</li>
+        <li><strong>Backend insights</strong> (p50/p95/throughput per endpoint) — darmowe ze starter. Sentry → Insights → Backend.</li>
+        <li><strong>Profiling przeglądarki</strong> — wpięte: <code>browserProfilingIntegration</code> + <code>profilesSampleRate: 1.0</code>. Flame graph dołączany do każdej transakcji.</li>
+        <li><strong>Profiling Java</strong> — <code>sentry.profile-session-sample-rate=1.0</code> + <code>sentry.profile-lifecycle=trace</code>. Wymaga <code>sentry-async-profiler</code> JAR na classpath — jeśli go nie ma, SDK po cichu pomija profiling (nie ma błędu, po prostu brak flame graphów po stronie BE).</li>
+        <li><strong>Span attributes / measurements</strong> — <code>span?.setAttribute('quotes.ok', n)</code> przyczepia liczby do transakcji. Searchable, agregowalne w Insights.</li>
+      </ul>
+      <p><strong>Co Sentry usunął (nie obiecuj uczestnikom):</strong></p>
+      <ul>
+        <li><strong>Custom Metrics</strong> jako osobny produkt (<code>Sentry.metrics.count/gauge/distribution</code>) — <em>deprecated w 2024</em> i usunięty z większości SDK. Następcy: <strong>Sentry Logs</strong> (structured key-value), <strong>span attributes</strong>, i <strong>trace measurements</strong>. Stary kod typu <code>Sentry.metrics.count('button_click', 1)</code> w naszym <code>app.ts</code> już nie działa — został zastąpiony przez <code>Sentry.startSpan</code> + <code>setAttribute</code> + <code>Sentry.logger.info</code>.</li>
+      </ul>
+      <p><strong>Demo: dwa nowe przyciski w UI</strong></p>
+      <ul>
+        <li><code>Stress test (8 równoległych)</code> — 8 zapytań w jednej transakcji, mix scenariuszy. Obserwuj Insights → Backend: p95 wzrasta, throughput skacze. Flame graph w profiles pokazuje, gdzie czas idzie.</li>
+        <li><code>Łańcuch 3 wycen</code> — 3 sekwencyjne, każde child span. Waterfall pokazuje N+1 pattern.</li>
+      </ul>
+    </details>
   </section>
 
   <section class="slide trainer" id="slide-39">
@@ -1195,10 +1216,11 @@ gh workflow run release.yml --ref main</pre>
     <h1>Follow one request, end-to-end</h1>
     <div class="panel-grid">
       <div class="card do">
-        <h3>Open in browser</h3>
+        <h3>Otwórz w przeglądarce</h3>
         <a href="https://devpowers.sentry.io/explore/traces/?project=4511646810570832&project=4511644672983120" target="_blank" rel="noopener">Traces — Angular + Spring</a>
-        <a href="https://devpowers.sentry.io/insights/frontend/?project=4511646810570832" target="_blank" rel="noopener">Frontend insights</a>
-        <a href="https://devpowers.sentry.io/insights/backend/?project=4511644672983120" target="_blank" rel="noopener">Backend insights</a>
+        <a href="https://devpowers.sentry.io/insights/frontend/?project=4511646810570832" target="_blank" rel="noopener">Insights — Frontend (Web Vitals)</a>
+        <a href="https://devpowers.sentry.io/insights/backend/?project=4511644672983120" target="_blank" rel="noopener">Insights — Backend (p50/p95/throughput)</a>
+        <a href="https://devpowers.sentry.io/profiling/?project=4511646810570832" target="_blank" rel="noopener">Profiles — Frontend flame graphs</a>
         <a href="https://devpowers.sentry.io/replays/?project=4511646810570832" target="_blank" rel="noopener">Replays</a>
         <a href="https://devpowers.sentry.io/explore/logs/?project=4511646810570832&project=4511644672983120" target="_blank" rel="noopener">Logs</a>
       </div>
@@ -1212,12 +1234,12 @@ sentry log list devpowers/java-spring-boot --period 30m
 sentry replay list --period 1d</pre>
       </div>
       <div class="card say">
-        <h3>Demo flow</h3>
+        <h3>Demo flow (3 części)</h3>
         <ol>
-          <li>Click "Wolna wycena" in Angular UI.</li>
-          <li>Refresh Traces list. Open the new trace.</li>
-          <li>Show the slow span on Spring side.</li>
-          <li>Show the correlated logs and breadcrumbs.</li>
+          <li><strong>Jeden trace:</strong> "Wolna wycena" → Traces → otwórz → pokaż <code>quote.risk-evaluation</code> span 750 ms na Spring i correlated logs/breadcrumbs.</li>
+          <li><strong>Throughput &amp; profiling:</strong> "Stress test" → po 5–10 s otwórz Insights → Backend; pokaż wzrost p95 i throughput. Otwórz Profiles → flame graph najnowszej transakcji.</li>
+          <li><strong>N+1 pattern:</strong> "Łańcuch 3 wycen" → Traces → pokaż 3 sekwencyjne child spans w jednym waterfall. To anti-pattern który chcesz znaleźć w prod.</li>
+        </ol>
         </ol>
       </div>
       <div class="card check">

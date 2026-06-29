@@ -8,9 +8,19 @@
     <h2>Wycena</h2>
     <div class="button-row">
       <button type="button" (click)="requestQuote('normal')">Pobierz wycenę</button>
-      <button type="button" (click)="requestQuote('slow')">Wolna wycena</button>
+      <button type="button" (click)="requestQuote('slow')">Wolna wycena (750 ms span)</button>
       <button type="button" (click)="requestQuote('server-error')">Wymuś błąd 500</button>
       <button type="button" (click)="requestQuote('validation')">Wymuś błąd walidacji</button>
+    </div>
+    <p class="status">{{ status() }}</p>
+  </section>
+
+  <section class="actions">
+    <h2>Performance &amp; profiling</h2>
+    <p>Otwórz Sentry → Traces / Insights / Profiling i kliknij:</p>
+    <div class="button-row">
+      <button type="button" (click)="stressTest()">Stress test (8 równoległych)</button>
+      <button type="button" (click)="nestedCalls()">Łańcuch 3 wycen</button>
     </div>
     <p class="status">{{ status() }}</p>
   </section>

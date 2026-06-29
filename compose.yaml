@@ -19,6 +19,9 @@ services:
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-training}
       SENTRY_RELEASE: ${API_RELEASE:-api-spring@main}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-1.0}
+      # Profiling on for the workshop (flame graphs on every transaction);
+      # drop to 0.05 in real production.
+      SENTRY_PROFILE_SESSION_SAMPLE_RATE: ${SENTRY_PROFILE_SESSION_SAMPLE_RATE:-1.0}
       DEMO_SCENARIOS_ENABLED: ${DEMO_SCENARIOS_ENABLED:-true}
       PARTICIPANT_ALIAS: ${PARTICIPANT_ALIAS:-anonymous}
       SPRING_PROFILES_ACTIVE: training

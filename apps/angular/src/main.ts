@@ -15,8 +15,14 @@ Sentry.init({
       maskAllText: true,
       blockAllMedia: true,
     }),
+    // Browser profiling — flame graphs sampled per-transaction.
+    // Cost overhead is ~10 KB JS + per-tx CPU sampling during recording.
+    // 1.0 here for the live demo; drop to 0.05 in production.
+    Sentry.browserProfilingIntegration(),
   ],
   tracesSampleRate: 1.0,
+  // profilesSampleRate is a fraction of transactions that get profiled.
+  profilesSampleRate: 1.0,
   tracePropagationTargets: ['localhost', /^\/api/],
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
