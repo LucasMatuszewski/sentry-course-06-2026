@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:17-jdk-noble AS build
 
 WORKDIR /workspace
 COPY gradle gradle
@@ -9,9 +9,16 @@ RUN chmod +x gradlew && ./gradlew --no-daemon dependencies
 COPY src src
 RUN ./gradlew --no-daemon bootJar
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-noble
 
-RUN addgroup -S policylab && adduser -S policylab -G policylab
+# Ubuntu (noble) base instead of Alpine because eclipse-temurin's Alpine
+# variants do not publish a linux/arm64 manifest. Coolify on the Hetzner
+# Ampere host needs arm64. Image size delta is ~70 MB — acceptable.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends wget \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --system policylab \
+ && useradd  --system --gid policylab policylab
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar
 
