@@ -17,6 +17,7 @@ Reference controls:
 - [Source validation register](source-validation.md)
 - [Manual trainer review gate](manual-review-checklist.md)
 - [Tokens, secrets and Coolify deploy walkthrough](guides/setup-tokens-and-deploy.md)
+- [Coolify bootstrap — 3-minute UI checklist](guides/coolify-bootstrap.md)
 
 The original two-day offer remains available as `Course-agenda-program-szkolenia-Sentry_2026.md` and PDF. The one-day agenda is the delivery source of truth.
 
