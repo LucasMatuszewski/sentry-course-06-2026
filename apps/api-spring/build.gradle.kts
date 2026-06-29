@@ -6,7 +6,13 @@ plugins {
 }
 
 group = "com.policylab"
-version = "0.1.0"
+// Version is overridden at build time via -Pversion=api-spring@<sha> in
+// .github/workflows/release.yml. The Sentry Gradle plugin uses this as
+// the release identifier when uploading the source bundle, and Spring
+// Boot writes it into BuildProperties (build-info.properties) which the
+// Sentry Spring Boot starter reads at runtime to set the release tag on
+// every event. One value, derived from git, used in three places.
+version = (project.findProperty("releaseName") as String?) ?: "api-spring@dev"
 
 java {
     toolchain {
@@ -41,6 +47,14 @@ sentry {
     org = "devpowers"
     projectName = "java-spring-boot"
     authToken = System.getenv("SENTRY_AUTH_TOKEN") ?: ""
+}
+
+// Spring Boot 3.x writes BuildProperties to META-INF/build-info.properties
+// only when the bootBuildInfo task runs. The Sentry Spring Boot starter
+// reads BuildProperties.getVersion() and uses it as the default release
+// when sentry.release is not explicitly set.
+springBoot {
+    buildInfo()
 }
 
 tasks.withType<Test>().configureEach {

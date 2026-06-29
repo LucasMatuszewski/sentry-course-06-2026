@@ -16,7 +16,14 @@ services:
     environment:
       SENTRY_DSN: "https://bf24f04f280201f59caae185d83a97eb@o4511643784511488.ingest.de.sentry.io/4511644672983120"
       SENTRY_ENVIRONMENT: "training"
-      SENTRY_RELEASE: "api-spring@main"
+      # Release name is auto-derived at runtime from the JAR's
+      # META-INF/build-info.properties (Spring Boot bootBuildInfo task baked
+      # this in at build time using -PreleaseName=api-spring@<short-sha>).
+      # The Sentry Spring Boot starter reads BuildProperties.getVersion()
+      # and uses it as the event release. Same source as the source bundle
+      # upload, no env-var indirection needed. Override here only if you
+      # want to lie about the deployed release for debugging.
+      # SENTRY_RELEASE: api-spring@override
       SENTRY_TRACES_SAMPLE_RATE: "1.0"
       SENTRY_PROFILE_SESSION_SAMPLE_RATE: "1.0"
       SENTRY_DEBUG: "true"
