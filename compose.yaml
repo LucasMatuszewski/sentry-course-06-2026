@@ -1,0 +1,47 @@
+# Root compose for the PolicyLab training stack.
+#
+# Two services on an internal Docker network:
+#   web — nginx serves the Angular bundle and reverse-proxies /api/ to api:8080
+#   api — Spring Boot 4 on port 8080, only reachable via the proxy
+#
+# Coolify ingest points at the `web` service. The API stays private; no public
+# CORS configuration is needed because both apps share the same origin.
+#
+# Image source for prod-like deploys: ghcr.io/lucasmatuszewski/sentry-course-06-2026-{web,api}
+# Built by .github/workflows/release.yml on push to main.
+
+services:
+  api:
+    image: ghcr.io/lucasmatuszewski/sentry-course-06-2026-api:${IMAGE_TAG:-main}
+    restart: unless-stopped
+    environment:
+      SENTRY_DSN: ${SPRING_SENTRY_DSN}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-training}
+      SENTRY_RELEASE: ${API_RELEASE:-api-spring@main}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-1.0}
+      DEMO_SCENARIOS_ENABLED: ${DEMO_SCENARIOS_ENABLED:-true}
+      PARTICIPANT_ALIAS: ${PARTICIPANT_ALIAS:-anonymous}
+      SPRING_PROFILES_ACTIVE: training
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  web:
+    image: ghcr.io/lucasmatuszewski/sentry-course-06-2026-web:${IMAGE_TAG:-main}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 15s

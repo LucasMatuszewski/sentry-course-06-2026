@@ -1,20 +1,34 @@
 name: Release
 
-# Runs only after a merge to main or a manual dispatch. Uses environment-scoped
-# secrets so SENTRY_AUTH_TOKEN never leaks into pull-request workflows.
+# Runs on push to main and on manual dispatch. Builds the Angular and Spring
+# images, pushes them to GHCR, uploads source maps / source context to Sentry,
+# creates Sentry releases, and (optionally) triggers Coolify to redeploy.
+#
+# Secrets / variables this workflow consumes (all set on the `training`
+# environment, never on the repository root):
+#   SENTRY_AUTH_TOKEN     - org-owned internal integration token, scope: org:ci
+#   COOLIFY_WEBHOOK_URL   - the per-application redeploy webhook from Coolify
+#   COOLIFY_API_TOKEN     - optional, only if you choose authenticated trigger
+#
+# Required permissions:
+#   contents: read           - checkout
+#   packages: write          - push to GHCR
+#   id-token: write          - allow getsentry/action-release OIDC if used
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
-      apps:
-        description: "Which apps to release"
+      deploy:
+        description: "Trigger Coolify redeploy after build?"
         required: false
-        default: "angular,spring"
+        default: "true"
 
 permissions:
   contents: read
+  packages: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,19 +36,42 @@ concurrency:
 
 env:
   SENTRY_ORG: devpowers
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: lucasmatuszewski
+  REPO_SLUG: sentry-course-06-2026
 
 jobs:
-  angular-release:
-    name: Angular release & source-map upload
+  meta:
+    name: Compute release names
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.v.outputs.sha }}
+      angular_release: ${{ steps.v.outputs.angular_release }}
+      spring_release: ${{ steps.v.outputs.spring_release }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        shell: bash
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          {
+            echo "sha=$SHA"
+            echo "angular_release=angular@$SHA"
+            echo "spring_release=api-spring@$SHA"
+          } >> "$GITHUB_OUTPUT"
+
+  angular-image:
+    name: Angular — build, source maps, push image
+    needs: meta
     runs-on: ubuntu-latest
     environment: training
-    if: github.event_name == 'push' || contains(github.event.inputs.apps, 'angular')
     defaults:
       run:
         working-directory: apps/angular
     env:
       SENTRY_PROJECT: javascript-angular
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_RELEASE: ${{ needs.meta.outputs.angular_release }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,39 +82,48 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - name: Compute release name
-        id: ver
-        shell: bash
-        run: echo "release=angular@$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - name: pnpm install
         run: pnpm install --frozen-lockfile
       - name: Production build with source maps
-        env:
-          SENTRY_RELEASE: ${{ steps.ver.outputs.release }}
         run: pnpm exec ng build --configuration production --source-map
-      - name: Create Sentry release and associate commits
+      - name: Create Sentry release + upload source maps
         uses: getsentry/action-release@v1
         with:
           environment: training
-          version: ${{ steps.ver.outputs.release }}
+          version: ${{ env.SENTRY_RELEASE }}
           sourcemaps: apps/angular/dist
           projects: ${{ env.SENTRY_PROJECT }}
           ignore_missing: true
           ignore_empty: true
-      - name: Strip .map files from the deployable bundle
+      - name: Strip .map files before image build
         run: find dist -name '*.map' -delete
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/angular
+          file: apps/angular/Dockerfile
+          push: true
+          build-args: |
+            SENTRY_RELEASE=${{ env.SENTRY_RELEASE }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-web:${{ needs.meta.outputs.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-web:main
 
-  spring-release:
-    name: Spring release & source context upload
+  spring-image:
+    name: Spring — build, source context, push image
+    needs: meta
     runs-on: ubuntu-latest
     environment: training
-    if: github.event_name == 'push' || contains(github.event.inputs.apps, 'spring')
-    defaults:
-      run:
-        working-directory: apps/api-spring
     env:
       SENTRY_PROJECT: java-spring-boot
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_RELEASE: ${{ needs.meta.outputs.spring_release }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,19 +133,65 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-      - name: Compute release name
-        id: ver
-        shell: bash
-        run: echo "release=api-spring@$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Build bootJar (Sentry Gradle plugin uploads source bundle)
-        env:
-          SENTRY_RELEASE: ${{ steps.ver.outputs.release }}
-        run: ./gradlew bootJar --no-daemon -Dsentry.release=${{ steps.ver.outputs.release }}
-      - name: Create Sentry release and associate commits (Spring)
+      - name: Build bootJar (Sentry Gradle plugin uploads source bundle if token set)
+        working-directory: apps/api-spring
+        run: ./gradlew bootJar --no-daemon -Dsentry.release=${{ env.SENTRY_RELEASE }}
+      - name: Create Sentry release (Spring)
         uses: getsentry/action-release@v1
         with:
           environment: training
-          version: ${{ steps.ver.outputs.release }}
+          version: ${{ env.SENTRY_RELEASE }}
           projects: ${{ env.SENTRY_PROJECT }}
           ignore_missing: true
           ignore_empty: true
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push api image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/api-spring
+          file: apps/api-spring/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-api:${{ needs.meta.outputs.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-api:main
+
+  deploy:
+    name: Trigger Coolify redeploy
+    needs: [meta, angular-image, spring-image]
+    runs-on: ubuntu-latest
+    environment: training
+    if: github.event_name == 'push' || github.event.inputs.deploy == 'true'
+    steps:
+      - name: Ping Coolify webhook
+        env:
+          WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::warning::COOLIFY_WEBHOOK_URL not set; skipping deploy."
+            exit 0
+          fi
+          curl --fail-with-body -X POST "$WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"sha\":\"${{ needs.meta.outputs.sha }}\"}"
+      - name: Wait for deployment health
+        env:
+          PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+        run: |
+          if [ -z "$PUBLIC_URL" ]; then
+            echo "PUBLIC_URL variable not set; skipping health probe."
+            exit 0
+          fi
+          for i in $(seq 1 30); do
+            sleep 10
+            if curl -sf "$PUBLIC_URL/healthz" > /dev/null; then
+              echo "Healthy after $((i*10))s."
+              exit 0
+            fi
+            echo "Not yet healthy (attempt $i/30)..."
+          done
+          echo "::warning::Health probe never succeeded; check Coolify logs."
