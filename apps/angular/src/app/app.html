@@ -1,0 +1,24 @@
+<main class="policylab">
+  <header>
+    <h1>{{ title() }}</h1>
+    <p>Demo szkoleniowy Sentry &mdash; Angular &rarr; Spring Boot</p>
+  </header>
+
+  <section class="actions">
+    <h2>Wycena</h2>
+    <div class="button-row">
+      <button type="button" (click)="requestQuote('normal')">Pobierz wycenę</button>
+      <button type="button" (click)="requestQuote('slow')">Wolna wycena</button>
+      <button type="button" (click)="requestQuote('server-error')">Wymuś błąd 500</button>
+      <button type="button" (click)="requestQuote('validation')">Wymuś błąd walidacji</button>
+    </div>
+    <p class="status">{{ status() }}</p>
+  </section>
+
+  <section class="actions">
+    <h2>Sentry verify</h2>
+    <button type="button" (click)="throwTestError()">Test Sentry Error</button>
+  </section>
+
+  <router-outlet />
+</main>
