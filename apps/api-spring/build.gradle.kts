@@ -28,10 +28,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    // sentry-spring-boot-jakarta-starter is the SB3 (jakarta.*) Sentry
+    // sentry-spring-boot-starter-jakarta is the SB3 (jakarta.*) Sentry
     // integration. It auto-wires the exception resolver, OpenTelemetry
     // tracing, breadcrumbs, and the sentry.* property binding.
-    implementation("io.sentry:sentry-spring-boot-jakarta-starter:8.46.0")
+    // Maven coordinates: io.sentry:sentry-spring-boot-starter-jakarta
+    // (suffix -jakarta on the artifact, NOT infix -jakarta-starter).
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.46.0")
     implementation("io.sentry:sentry-logback:8.46.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -72,10 +72,12 @@ runs:
           REL_ARG=(--release "${{ inputs.release }}")
         fi
 
+        # sentry-cli's send-event flag is --env, not --environment.
+        # https://docs.sentry.io/cli/send-event/
         npx --yes @sentry/cli@^2 send-event \
           --message "${{ inputs.message }}" \
           --level error \
-          --environment "${{ inputs.environment }}" \
+          --env "${{ inputs.environment }}" \
           "${REL_ARG[@]}" \
           "${TAG_ARGS[@]}" \
           --tag "sha:${GITHUB_SHA}" \
