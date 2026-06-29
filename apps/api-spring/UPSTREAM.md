@@ -16,7 +16,7 @@ The implementation was written specifically for PolicyLab after inspecting the u
 
 ## Ideas retained
 
-- The `io.sentry:sentry-spring-boot-4-starter` integration.
+- The `io.sentry:sentry-spring-boot-jakarta-starter` integration (Spring Boot 3.x jakarta path; see note below).
 - The separate Sentry Logback integration and Sentry Logs configuration.
 - Environment/property-based Sentry configuration.
 - A manually created child span based on `Sentry.getSpan()` and `startChild(...)`.
@@ -43,8 +43,14 @@ The upstream sample enables default PII and request-body capture for SDK system 
 
 The upstream build consumes local Sentry modules, so it is not directly reusable as a standalone project. This project instead resolves released artifacts from Maven Central:
 
-- `org.springframework.boot` `4.1.0`
-- `io.sentry:sentry-spring-boot-4-starter` `8.46.0`
+- `org.springframework.boot` `3.5.0`
+- `io.sentry:sentry-spring-boot-jakarta-starter` `8.46.0`
 - `io.sentry:sentry-logback` `8.46.0`
+
+### Note on Spring Boot version
+
+We initially pinned Spring Boot 4.1 + `sentry-spring-boot-4-starter:8.46.0` but the runtime crashed at startup with `ClassNotFoundException: org.springframework.boot.web.client.RestClientCustomizer` plus an explicit "Incompatible Spring Boot Version detected" warning from `SentrySpringVersionChecker`. The `-4-starter` artifact internally still uses the SB3-jakarta auto-config which references SB3-era classes that were relocated in SB4.
+
+Downgrade to SB3.5 (current production-stable line for most enterprises) restored a clean boot. Every Sentry teaching point is identical between SB3.5 and SB4.
 
 Maven Central metadata was queried on 2026-06-29 before these versions were selected.

@@ -29,27 +29,22 @@ This was the expected failure: the test contract compiled far enough to resolve 
 
 The green command and result are recorded after a fresh full build succeeds.
 
-## Known issue — Spring Boot 4.1 integration tests on CI
+## Resolved issue — Spring Boot 4.1 + Sentry incompatibility
 
-`@SpringBootTest`-backed integration tests (`QuoteApiIntegrationTest`,
-`DemoScenarioIntegrationTest`, `HealthIntegrationTest`,
-`SentryCaptureIntegrationTest`) fail to load the Spring application context
-on Linux runners with:
+`@SpringBootTest` integration tests and the runtime container both failed
+on Spring Boot 4.1 + `sentry-spring-boot-4-starter:8.46.0`. Coolify
+container logs surfaced the root cause:
 
 ```
-Caused by: java.lang.NoClassDefFoundError at ClassLoader.java
-  Caused by: java.lang.ClassNotFoundException at BuiltinClassLoader.java:641
+SentrySpringVersionChecker: !Incompatible Spring Boot Version detected!
+ClassNotFoundException: org.springframework.boot.web.client.RestClientCustomizer
 ```
 
-Likely cause: a transitive class that exists on the local Windows JDK setup
-but is not provided by Spring Boot 4.1 + `sentry-spring-boot-4-starter`
-8.46.0 alone. To unblock the workshop CI we currently run only the pure
-unit tests (`*QuoteServiceTest`) in `.github/workflows/ci.yml`.
+The Sentry artifact named `-4-starter` is in practice the SB3-jakarta
+auto-config rebadged; it references SB3-era classes that were relocated
+when Spring Boot 4 split its autoconfigure module. Sentry has not yet
+shipped a true SB4 starter.
 
-Follow-up after the workshop:
-
-1. Run `gradlew test --info` and capture the missing class name from the
-   stack trace.
-2. Either pin a matching Sentry SDK release or add the missing transitive
-   dependency.
-3. Restore `gradlew test` (no `--tests` filter) in CI.
+**Resolution:** downgraded the build to Spring Boot 3.5.0 and switched
+to `io.sentry:sentry-spring-boot-jakarta-starter:8.46.0`. CI now runs
+the full test suite (no `--tests` filter). Runtime boots cleanly.

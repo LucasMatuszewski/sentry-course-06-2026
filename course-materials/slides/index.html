@@ -915,15 +915,37 @@ sentry trace view &lt;trace-id&gt;</pre>
   </section>
 
   <section class="slide" id="slide-29">
-    <h2>CI/CD — two CLIs, do not confuse</h2>
-    <h1><code>sentry-cli</code> (pipeline) vs. <code>sentry</code> (you)</h1>
+    <h2>CI/CD — dwa CLI, nie myl ich</h2>
+    <h1><code>sentry-cli</code> (pipeline) vs. <code>sentry</code> (Ty)</h1>
     <ul>
-      <li><strong><code>sentry-cli</code></strong> — narrow, stable, designed for pipelines. Auth = org token scoped <code>org:ci</code>. Used in <code>.github/workflows/release.yml</code>, Bitbucket Pipelines, Jenkinsfile.</li>
-      <li><strong><code>sentry</code></strong> (cli.sentry.dev) — broad, interactive, for developers and AI agents. Auth = your user via <code>sentry auth login</code>. Use it at your desk; do <em>not</em> bake it into builds.</li>
-      <li>CI token = source-map upload, release creation, code mappings. That's it.</li>
-      <li>Dev/agent CLI = read everything, mutate carefully. Your user permissions apply.</li>
-      <li>Reference: <code>course-materials/guides/09-seer-mcp.md</code> § "Two Sentry CLIs".</li>
+      <li><strong><code>sentry-cli</code></strong> — wąski, stabilny, do pipeline'ów. Auth = org token scoped <code>org:ci</code>. Używany w <code>.github/workflows/release.yml</code>, Bitbucket Pipelines, Jenkinsfile.</li>
+      <li><strong><code>sentry</code></strong> (cli.sentry.dev) — szeroki, interaktywny, dla developerów i AI agents. Auth = user token przez <code>sentry auth login</code>. Tylko przy biurku; <em>nie</em> w buildzie.</li>
+      <li>CI token = source-map upload, release creation, code mappings. Nic więcej.</li>
+      <li>Dev/agent CLI = czyta wszystko, mutuje ostrożnie. Twoje uprawnienia user-poziomu.</li>
     </ul>
+    <details open>
+      <summary>🎯 Bonus: Sentry łapie też błędy CI/CD i deployu — bez tokenu</summary>
+      <p><code>sentry-cli send-event</code> działa <strong>tylko z DSN</strong>. DSN jest publiczny → idzie do <code>vars</code>, nie <code>secrets</code>. Każdy job ma teraz krok <code>if: failure()</code> który wysyła event do projektu odpowiadającego za to co się zepsuło.</p>
+      <pre>npx --yes @sentry/cli@^2 send-event \
+  --message "Spring release failed (spring-image) api-spring@a1b2c3d" \
+  --level error \
+  --environment release \
+  --release "api-spring@a1b2c3d" \
+  --tag "workflow:Release" \
+  --tag "job:spring-image" \
+  --tag "stage:release" \
+  --tag "platform:spring" \
+  --extra "run_url:https://github.com/.../actions/runs/123"</pre>
+      <p>Trzy nowe repo variables (jednorazowo, już ustawione):</p>
+      <ul>
+        <li><code>WEB_SENTRY_DSN</code> — DSN projektu <em>javascript-angular</em></li>
+        <li><code>API_SENTRY_DSN</code> — DSN projektu <em>java-spring-boot</em></li>
+        <li><code>ANDROID_SENTRY_DSN</code> — DSN projektu <em>android</em></li>
+      </ul>
+      <p>Reusable action: <code>.github/actions/sentry-report-failure/action.yml</code>. Tagi <code>workflow</code>, <code>job</code>, <code>stage</code>, <code>platform</code>, <code>sha</code>, <code>run_id</code> + extra <code>run_url</code>. Filtruj w Sentry: <code>environment:release stage:deploy</code>.</p>
+      <p><strong>Plus warstwa Spring</strong>: <code>PolicyLabApplication.main()</code> robi manual <code>Sentry.init()</code> przed <code>SpringApplication.run()</code> i łapie throwable boot-time. Crash z kontekstu Springa też idzie do Sentry — z tagiem <code>boot.phase:pre-spring</code>.</p>
+      <p>Demo dydaktyczne na żywo: zepsuj coś (e.g. literówka w pliku <code>build.gradle.kts</code>), pushnij, pokaż uczestnikom event w Sentry zanim w ogóle otworzą logi GitHub Actions.</p>
+    </details>
   </section>
 
   <section class="slide trainer" id="slide-30">

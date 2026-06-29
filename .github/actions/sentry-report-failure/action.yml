@@ -1,0 +1,86 @@
+name: Sentry — report CI/CD failure
+description: |
+  Sends a Sentry event describing a failed GitHub Actions job step using
+  sentry-cli send-event. DSN-only auth, no token required. Safe to call
+  from any workflow (including PRs) because DSNs are public ingestion
+  endpoints rate-limited per project.
+
+  Pedagogical purpose for the workshop: when a build / image push /
+  deploy fails, the next click is an Issue in Sentry, not a hunt
+  through Actions logs. The DSN-based capture works exactly the same
+  way the apps themselves report errors.
+
+inputs:
+  dsn:
+    description: Sentry DSN for the project the failure belongs to.
+    required: true
+  message:
+    description: Short human description of what failed.
+    required: true
+  environment:
+    description: Sentry environment tag (ci, release, deploy, ...).
+    required: false
+    default: ci
+  release:
+    description: Sentry release identifier (e.g. ci@<sha>).
+    required: false
+    default: ""
+  extra_tags:
+    description: |
+      Space-separated key:value tags to add on top of the workflow defaults.
+      Example: "stage:bootJar reason:test-fail"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Send Sentry event
+      shell: bash
+      env:
+        SENTRY_DSN: ${{ inputs.dsn }}
+      run: |
+        set -eu
+        if [ -z "${SENTRY_DSN}" ]; then
+          echo "::warning::No DSN provided; skipping Sentry failure event."
+          exit 0
+        fi
+        # Workflow context as defaults — every event carries them.
+        TAGS=(
+          "workflow:${GITHUB_WORKFLOW}"
+          "job:${GITHUB_JOB}"
+          "ref:${GITHUB_REF_NAME}"
+          "actor:${GITHUB_ACTOR}"
+          "event:${GITHUB_EVENT_NAME}"
+        )
+        for t in ${{ inputs.extra_tags }}; do
+          TAGS+=("$t")
+        done
+
+        TAG_ARGS=()
+        for t in "${TAGS[@]}"; do
+          TAG_ARGS+=("--tag" "$t")
+        done
+
+        RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+        # Sentry CLI for CI/CD lives in the sentry-cli package on npm; we
+        # invoke it via `npx` so it runs on any GitHub-hosted runner.
+        # https://docs.sentry.io/cli/send-event/
+        REL_ARG=()
+        if [ -n "${{ inputs.release }}" ]; then
+          REL_ARG=(--release "${{ inputs.release }}")
+        fi
+
+        npx --yes @sentry/cli@^2 send-event \
+          --message "${{ inputs.message }}" \
+          --level error \
+          --environment "${{ inputs.environment }}" \
+          "${REL_ARG[@]}" \
+          "${TAG_ARGS[@]}" \
+          --tag "sha:${GITHUB_SHA}" \
+          --tag "run_id:${GITHUB_RUN_ID}" \
+          --extra "run_url:${RUN_URL}" \
+          --extra "repo:${GITHUB_REPOSITORY}"
+
+        echo "::notice::Failure reported to Sentry. Run: ${RUN_URL}"

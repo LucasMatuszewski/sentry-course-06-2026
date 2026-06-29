@@ -70,6 +70,16 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Report failure to Sentry
+        if: failure()
+        uses: ./.github/actions/sentry-report-failure
+        with:
+          dsn: ${{ vars.WEB_SENTRY_DSN }}
+          message: "Angular CI failed (${{ github.job }}) on ${{ github.ref_name }}"
+          environment: ci
+          release: angular@${{ github.sha }}
+          extra_tags: "stage:ci platform:angular"
+
   spring:
     name: Spring Boot — test, build
     needs: changes
@@ -85,12 +95,8 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-      # Run only the pure unit tests in CI. The @SpringBootTest integration
-      # tests fail to load context with Spring Boot 4.1 + sentry-spring-boot-4
-      # in this combination; they pass in IDE runs and are tracked as a known
-      # issue (see apps/api-spring/TDD.md). Don't block the workshop on it.
-      - name: Gradle unit tests
-        run: ./gradlew test --tests "*QuoteServiceTest" --no-daemon
+      - name: Gradle tests (unit + integration)
+        run: ./gradlew test --no-daemon
       # Source context upload requires SENTRY_AUTH_TOKEN; left off on PRs intentionally.
       - name: Gradle bootJar (without source context)
         env:
@@ -103,6 +109,16 @@ jobs:
           path: apps/api-spring/build/libs/*.jar
           if-no-files-found: error
           retention-days: 7
+
+      - name: Report failure to Sentry
+        if: failure()
+        uses: ./.github/actions/sentry-report-failure
+        with:
+          dsn: ${{ vars.API_SENTRY_DSN }}
+          message: "Spring CI failed (${{ github.job }}) on ${{ github.ref_name }}"
+          environment: ci
+          release: api-spring@${{ github.sha }}
+          extra_tags: "stage:ci platform:spring"
 
   android:
     # The AI Studio snapshot does not ship a Gradle wrapper. The on-device demo
@@ -128,3 +144,12 @@ jobs:
           # Manifest must be valid XML.
           python3 -c "import xml.etree.ElementTree as E; E.parse('app/src/main/AndroidManifest.xml')"
           echo "Android sources look structurally intact."
+
+      - name: Report failure to Sentry
+        if: failure()
+        uses: ./.github/actions/sentry-report-failure
+        with:
+          dsn: ${{ vars.ANDROID_SENTRY_DSN }}
+          message: "Android CI failed (${{ github.job }}) on ${{ github.ref_name }}"
+          environment: ci
+          extra_tags: "stage:ci platform:android"

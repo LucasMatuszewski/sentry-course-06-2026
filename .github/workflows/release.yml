@@ -145,6 +145,16 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-web:${{ needs.meta.outputs.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-web:main
 
+      - name: Report failure to Sentry
+        if: failure()
+        uses: ./.github/actions/sentry-report-failure
+        with:
+          dsn: ${{ vars.WEB_SENTRY_DSN }}
+          message: "Angular release failed (${{ github.job }}) ${{ env.SENTRY_RELEASE }}"
+          environment: release
+          release: ${{ env.SENTRY_RELEASE }}
+          extra_tags: "stage:release platform:angular"
+
   spring-image:
     name: Spring — build, source context, push image
     needs: meta
@@ -198,6 +208,16 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-api:${{ needs.meta.outputs.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-api:main
 
+      - name: Report failure to Sentry
+        if: failure()
+        uses: ./.github/actions/sentry-report-failure
+        with:
+          dsn: ${{ vars.API_SENTRY_DSN }}
+          message: "Spring release failed (${{ github.job }}) ${{ env.SENTRY_RELEASE }}"
+          environment: release
+          release: ${{ env.SENTRY_RELEASE }}
+          extra_tags: "stage:release platform:spring"
+
   deploy:
     name: Trigger Coolify redeploy
     needs: [meta, angular-image, spring-image]
@@ -217,6 +237,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"sha\":\"${{ needs.meta.outputs.sha }}\"}"
       - name: Wait for deployment health
+        id: health
         env:
           PUBLIC_URL: ${{ vars.PUBLIC_URL }}
         run: |
@@ -228,8 +249,20 @@ jobs:
             sleep 10
             if curl -sf "$PUBLIC_URL/healthz" > /dev/null; then
               echo "Healthy after $((i*10))s."
+              echo "elapsed_s=$((i*10))" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             echo "Not yet healthy (attempt $i/30)..."
           done
-          echo "::warning::Health probe never succeeded; check Coolify logs."
+          echo "::error::Health probe never succeeded after 5 min."
+          exit 1
+
+      - name: Report failure to Sentry
+        if: failure()
+        uses: ./.github/actions/sentry-report-failure
+        with:
+          dsn: ${{ vars.API_SENTRY_DSN }}
+          message: "Deploy failed on Coolify for ${{ needs.meta.outputs.sha }}"
+          environment: deploy
+          release: api-spring@${{ needs.meta.outputs.sha }}
+          extra_tags: "stage:deploy host:coolify"

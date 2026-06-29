@@ -1,6 +1,13 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.1.0"
+    // Spring Boot 3.5 instead of 4.x: sentry-spring-boot-4-starter 8.46.0
+    // is internally the SB3-jakarta auto-config and references the
+    // org.springframework.boot.web.client.RestClientCustomizer class
+    // which was removed in Spring Boot 4.1. Sentry's real Spring Boot 4
+    // starter is not stable in 8.46.0. The Sentry-side teaching points
+    // are identical between SB3.5 and SB4.
+    id("org.springframework.boot") version "3.5.0"
+    id("io.spring.dependency-management") version "1.1.6"
     id("io.sentry.jvm.gradle") version "5.5.0"
 }
 
@@ -18,15 +25,16 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:4.1.0"))
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.sentry:sentry-spring-boot-4-starter:8.46.0")
+    // sentry-spring-boot-jakarta-starter is the SB3 (jakarta.*) Sentry
+    // integration. It auto-wires the exception resolver, OpenTelemetry
+    // tracing, breadcrumbs, and the sentry.* property binding.
+    implementation("io.sentry:sentry-spring-boot-jakarta-starter:8.46.0")
     implementation("io.sentry:sentry-logback:8.46.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 }
 
 sentry {
