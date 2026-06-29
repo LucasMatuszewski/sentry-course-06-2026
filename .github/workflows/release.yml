@@ -228,12 +228,22 @@ jobs:
       - name: Ping Coolify webhook
         env:
           WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
           if [ -z "$WEBHOOK" ]; then
             echo "::warning::COOLIFY_WEBHOOK_URL not set; skipping deploy."
             exit 0
           fi
+          # Coolify "Deploy Webhook (auth required)" needs a Bearer API
+          # token. Without it the endpoint 403s. The token is a Coolify
+          # API token created in Coolify -> Profile -> Keys & Tokens, NOT
+          # a Sentry token. Both lives in the training env secret store.
+          AUTH=()
+          if [ -n "$TOKEN" ]; then
+            AUTH=(-H "Authorization: Bearer ${TOKEN}")
+          fi
           curl --fail-with-body -X POST "$WEBHOOK" \
+            "${AUTH[@]}" \
             -H "Content-Type: application/json" \
             -d "{\"sha\":\"${{ needs.meta.outputs.sha }}\"}"
       - name: Wait for deployment health
