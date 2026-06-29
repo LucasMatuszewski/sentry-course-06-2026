@@ -1,6 +1,6 @@
 # Sentry for enterprise developers — one-day workshop
 
-**Date:** 2026-06-30  
+**Date:** 2026-06-29  
 **Delivery:** Microsoft Teams  
 **Time:** 09:00–17:00 Europe/Warsaw  
 **Audience:** five senior developers/architects  

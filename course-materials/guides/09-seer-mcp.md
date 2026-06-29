@@ -43,6 +43,25 @@ Record:
 - checks performed;
 - accepted/rejected decision and reviewer.
 
+## Two Sentry CLIs (do not confuse them)
+
+There are now two distinct command-line tools both called `sentry`. Keep their roles clear when teaching:
+
+| | **CI/CD CLI** (the historical one) | **Developer / Agent CLI** (new) |
+|---|---|---|
+| Binary | `sentry-cli` | `sentry` |
+| Home | [docs.sentry.io/cli/](https://docs.sentry.io/cli/) | [cli.sentry.dev](https://cli.sentry.dev/getting-started/) |
+| Built for | Release pipelines, source-map and dSYM/ProGuard upload, deploy markers | Interactive triage, dashboards, queries, ad-hoc actions from a terminal or AI agent |
+| Default auth | Organization auth token scoped to `org:ci` (Source map upload, Release creation, Code mappings). User tokens are allowed but discouraged; with a user token you must also set the org slug and project id via config or env. | Stored device login (`sentry auth login`) for the operator's user. Optional `SENTRY_AUTH_TOKEN` env var, with `SENTRY_FORCE_ENV_TOKEN=1` to prefer it. |
+| Surface area | Narrow and stable; safe to run unattended in CI. | Wide (issues, events, traces, releases, projects, alerts, dashboards, MCP, AI). More powerful, broader permissions, **less safe to run unattended**. |
+| When to teach | Release/source-artifact module (CI examples in `course-materials/ci-cd/`). | Agenda kickoff and the AI/Seer/MCP module — show one or two reads (`sentry whoami`, `sentry project list`, `sentry issue list`). |
+
+Rules of thumb for participants:
+
+- Use **`sentry-cli`** (CI/CD) inside `.github/workflows/*.yml`, Bitbucket Pipelines, and Jenkins.
+- Use **`sentry`** (dev/agent) on a developer machine to inspect what is happening right now. Do not bake it into a build pipeline.
+- A token authorized for one tool is not automatically appropriate for the other. The CI token is intentionally narrow; the dev/agent CLI can act on the operator's full Sentry permissions.
+
 ## UI note
 
 Seer features, entitlements, and labels vary by plan and rollout. Start from the issue's Seer panel or search Sentry documentation/navigation for **Seer**. For MCP, follow the current official setup page rather than copying workshop tokens or commands.
