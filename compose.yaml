@@ -2,34 +2,32 @@
 #
 # Two services on an internal Docker network:
 #   web — nginx serves the Angular bundle and reverse-proxies /api/ to api:8080
-#   api — Spring Boot 4 on port 8080, only reachable via the proxy
+#   api — Spring Boot on port 8080, only reachable via the proxy
 #
-# Coolify ingest points at the `web` service. The API stays private; no public
-# CORS configuration is needed because both apps share the same origin.
-#
-# Image source for prod-like deploys: ghcr.io/lucasmatuszewski/sentry-course-06-2026-{web,api}
-# Built by .github/workflows/release.yml on push to main.
+# Sentry DSNs are PUBLIC ingestion endpoints (per Sentry docs) and are
+# hard-coded below so there is zero env-interpolation magic between
+# Coolify and the container. Auth tokens (which ARE secret) live only
+# in GitHub Actions and never touch this file.
 
 services:
   api:
     image: ghcr.io/lucasmatuszewski/sentry-course-06-2026-api:${IMAGE_TAG:-main}
     restart: unless-stopped
     environment:
-      SENTRY_DSN: ${SPRING_SENTRY_DSN}
-      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-training}
-      SENTRY_RELEASE: ${API_RELEASE:-api-spring@main}
-      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-1.0}
-      # Profiling on for the workshop (flame graphs on every transaction);
-      # drop to 0.05 in real production.
-      SENTRY_PROFILE_SESSION_SAMPLE_RATE: ${SENTRY_PROFILE_SESSION_SAMPLE_RATE:-1.0}
-      DEMO_SCENARIOS_ENABLED: ${DEMO_SCENARIOS_ENABLED:-true}
-      PARTICIPANT_ALIAS: ${PARTICIPANT_ALIAS:-anonymous}
-      SPRING_PROFILES_ACTIVE: training
+      SENTRY_DSN: "https://bf24f04f280201f59caae185d83a97eb@o4511643784511488.ingest.de.sentry.io/4511644672983120"
+      SENTRY_ENVIRONMENT: "training"
+      SENTRY_RELEASE: "api-spring@main"
+      SENTRY_TRACES_SAMPLE_RATE: "1.0"
+      SENTRY_PROFILE_SESSION_SAMPLE_RATE: "1.0"
+      SENTRY_DEBUG: "true"
+      DEMO_SCENARIOS_ENABLED: "true"
+      PARTICIPANT_ALIAS: "training-shared"
+      SPRING_PROFILES_ACTIVE: "training"
+      # Trainer can override any of the above via Coolify env vars; entries
+      # in Coolify take precedence over these defaults thanks to how
+      # docker-compose --env-file merges values into the container.
     expose:
       - "8080"
-    # Generous start_period because JVM + Sentry agent cold start can take
-    # 30-60 s on small arm64 hosts (Coolify Ampere) before /actuator/health
-    # returns 200. Healthcheck timeout extended for the same reason.
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/actuator/health"]
       interval: 15s
@@ -40,10 +38,6 @@ services:
   web:
     image: ghcr.io/lucasmatuszewski/sentry-course-06-2026-web:${IMAGE_TAG:-main}
     restart: unless-stopped
-    # condition: service_started instead of service_healthy so that if the API
-    # crashes during the workshop, the workshop URL still resolves to nginx
-    # (which returns 502 from /api/, but / and /healthz still work). Trainer
-    # can then diagnose API logs without losing the slide URL.
     depends_on:
       api:
         condition: service_started
