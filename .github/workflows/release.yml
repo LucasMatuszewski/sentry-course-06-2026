@@ -246,7 +246,23 @@ jobs:
           if [ -n "$TOKEN" ]; then
             AUTH=(-H "Authorization: Bearer ${TOKEN}")
           fi
-          curl --fail-with-body -X POST "$WEBHOOK" \
+          # CRITICAL: rewrite force=false -> force=true. Without this,
+          # Coolify pulls the new image but does NOT recreate the running
+          # container under restart: unless-stopped. The container keeps
+          # serving the old binary even though docker has the new image
+          # cached. Symptom: deployment shows "finished" on new SHA but
+          # spring app reports older code paths. With force=true Coolify
+          # explicitly stops + restarts via compose. Verified against the
+          # Coolify source (ApplicationDeploymentJob.php).
+          FORCED_WEBHOOK="${WEBHOOK/force=false/force=true}"
+          # If the webhook URL had no force param at all, append one.
+          case "$FORCED_WEBHOOK" in
+            *force=*) ;;
+            *\?*)     FORCED_WEBHOOK="${FORCED_WEBHOOK}&force=true" ;;
+            *)        FORCED_WEBHOOK="${FORCED_WEBHOOK}?force=true" ;;
+          esac
+          echo "Calling Coolify deploy with force=true"
+          curl --fail-with-body -X POST "$FORCED_WEBHOOK" \
             "${AUTH[@]}" \
             -H "Content-Type: application/json" \
             -d "{\"sha\":\"${{ needs.meta.outputs.sha }}\"}"
