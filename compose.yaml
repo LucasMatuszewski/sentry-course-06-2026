@@ -24,19 +24,26 @@ services:
       SPRING_PROFILES_ACTIVE: training
     expose:
       - "8080"
+    # Generous start_period because JVM + Sentry agent cold start can take
+    # 30-60 s on small arm64 hosts (Coolify Ampere) before /actuator/health
+    # returns 200. Healthcheck timeout extended for the same reason.
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/actuator/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 5
-      start_period: 30s
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
 
   web:
     image: ghcr.io/lucasmatuszewski/sentry-course-06-2026-web:${IMAGE_TAG:-main}
     restart: unless-stopped
+    # condition: service_started instead of service_healthy so that if the API
+    # crashes during the workshop, the workshop URL still resolves to nginx
+    # (which returns 502 from /api/, but / and /healthz still work). Trainer
+    # can then diagnose API logs without losing the slide URL.
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
     ports:
       - "80"
     healthcheck:
