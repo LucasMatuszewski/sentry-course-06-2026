@@ -46,7 +46,7 @@ public class QuoteService {
             .multiply(driverFactor)
             .setScale(2, RoundingMode.HALF_UP);
 
-    return new QuoteResponse(UUID.randomUUID(), premium, "GBP", riskBand(premium));
+    return new QuoteResponse(UUID.randomUUID(), premium, "PLN", riskBand(premium));
   }
 
   private BigDecimal driverFactor(int driverAge) {

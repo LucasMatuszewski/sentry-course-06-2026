@@ -17,19 +17,19 @@ class QuoteServiceTest {
 
   @Test
   void calculatesDeterministicPremiumAndRiskBand() {
-    QuoteRequest request = new QuoteRequest("car", 2022, "comprehensive", "SW1A 1AA", 38);
+    QuoteRequest request = new QuoteRequest("car", 2022, "comprehensive", "00-001", 38);
 
     var quote = quoteService.createQuote(request);
 
     assertThat(quote.annualPremium()).isEqualByComparingTo(new BigDecimal("675.00"));
-    assertThat(quote.currency()).isEqualTo("GBP");
+    assertThat(quote.currency()).isEqualTo("PLN");
     assertThat(quote.riskBand()).isEqualTo("MEDIUM");
     assertThat(quote.quoteId()).isNotNull();
   }
 
   @Test
   void classifiesYoungDriversAsHighRisk() {
-    QuoteRequest request = new QuoteRequest("van", 2010, "comprehensive", "EH1 1YZ", 20);
+    QuoteRequest request = new QuoteRequest("van", 2010, "comprehensive", "00-002", 20);
 
     var quote = quoteService.createQuote(request);
 

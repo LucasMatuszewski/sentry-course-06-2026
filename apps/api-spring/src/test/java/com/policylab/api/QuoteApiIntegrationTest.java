@@ -33,7 +33,7 @@ class QuoteApiIntegrationTest {
         "vehicleType": "car",
         "manufactureYear": 2022,
         "coverage": "comprehensive",
-        "postalCode": "SW1A 1AA",
+        "postalCode": "00-001",
         "driverAge": 38
       }
       """;
@@ -49,7 +49,7 @@ class QuoteApiIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.quoteId").isString())
         .andExpect(jsonPath("$.annualPremium").isNumber())
-        .andExpect(jsonPath("$.currency").value("GBP"))
+        .andExpect(jsonPath("$.currency").value("PLN"))
         .andExpect(jsonPath("$.riskBand").value("MEDIUM"));
 
     verify(telemetry)

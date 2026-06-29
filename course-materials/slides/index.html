@@ -850,15 +850,94 @@ sentry-cli releases finalize "$REL"</pre>
   </section>
 
   <!-- ========================================================== -->
+  <!-- 1.4 continued: Tokens & live Coolify deploy                 -->
+  <!-- ========================================================== -->
+  <section class="slide" id="slide-31">
+    <h2>Tokens — który gdzie, dlaczego</h2>
+    <h1>One token type per scope, never mix</h1>
+    <ul>
+      <li><strong>Project DSN</strong> — public, runtime env in each app. Rotate by revoking the client key.</li>
+      <li><strong>Sentry org auth token</strong> (<code>org:ci</code>) — only in GitHub Actions secret. Build-time only. Created at <a href="https://devpowers.sentry.io/settings/auth-tokens/" target="_blank" rel="noopener">devpowers.sentry.io/settings/auth-tokens</a>.</li>
+      <li><strong>Sentry user auth token</strong> — only on a developer's laptop via <code>sentry auth login</code>. Never in a workflow.</li>
+      <li><strong>GitHub <code>GITHUB_TOKEN</code></strong> — auto-injected; we use it to push images to <code>ghcr.io</code> (<code>packages:write</code>).</li>
+      <li><strong>Coolify webhook URL</strong> — semi-secret; lives in the same GitHub <code>training</code> environment.</li>
+      <li>Full matrix &amp; copy-paste commands: <code>course-materials/guides/setup-tokens-and-deploy.md</code>.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-32">
+    <h2>The release workflow we just shipped</h2>
+    <h1>Build once on GitHub, deploy from ghcr.io to Coolify</h1>
+    <ul>
+      <li><code>.github/workflows/release.yml</code> has four jobs: <em>meta</em> (compute SHAs), <em>angular-image</em>, <em>spring-image</em>, <em>deploy</em>.</li>
+      <li>Each app job: install → build → <code>getsentry/action-release</code> uploads source maps / source bundle → <code>docker buildx</code> pushes <code>ghcr.io/lucasmatuszewski/sentry-course-06-2026-{web,api}:&lt;sha&gt;</code>.</li>
+      <li>Deploy job: POSTs to <code>COOLIFY_WEBHOOK_URL</code>; Coolify pulls the new images and restarts.</li>
+      <li>Health probe: workflow polls <code>${PUBLIC_URL}/healthz</code> for 5 minutes.</li>
+      <li>VPS does <strong>no</strong> building — saves CPU/RAM for the actual demo traffic.</li>
+    </ul>
+  </section>
+
+  <section class="slide trainer" id="slide-33">
+    <span class="timecode">13:30 – 14:30</span>
+    <h2>Trainer panel · Live deploy demo</h2>
+    <h1>Push a one-liner, watch it land in prod</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Trigger</h3>
+        <pre class="bash"># Tiny demo change
+cd apps/angular
+sed -i 's/PolicyLab/PolicyLab v2/' src/app/app.ts
+git commit -am "demo: title bump"
+git push</pre>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/actions" target="_blank" rel="noopener">Watch the workflow</a>
+      </div>
+      <div class="card do">
+        <h3>Observe in Sentry</h3>
+        <a href="https://devpowers.sentry.io/releases/?project=4511646810570832" target="_blank" rel="noopener">Angular releases — see new entry</a>
+        <a href="https://devpowers.sentry.io/releases/?project=4511644672983120" target="_blank" rel="noopener">Spring releases — see source bundle attached</a>
+        <p>After deploy: open the public Coolify URL, click "Wymuś błąd 500" → issue appears tagged with the new release.</p>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"GitHub runs the build because it has the secrets and the CPU. Coolify only pulls."</li>
+          <li>"<code>org:ci</code> is the only scope we trust for unattended CI. The user CLI uses a different token entirely."</li>
+          <li>"The same commit SHA is the release name in Sentry, the image tag in ghcr, and what Coolify pulls — that's how 'suspect commits' works."</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Check</h3>
+        <ul>
+          <li>Workflow's <em>deploy</em> step shows "Healthy after Xs."</li>
+          <li>Sentry release page shows the deploy marker.</li>
+          <li>One trace in Sentry crosses Angular → Spring spans in the same waterfall.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="slide-34">
+    <h2>What stays private, what stays public</h2>
+    <h1>The contract you can show your security team</h1>
+    <ul>
+      <li><strong>Public</strong>: DSNs (4 of them), the public deploy FQDN, ghcr image names, Coolify FQDN, source code.</li>
+      <li><strong>Secret (GH env)</strong>: <code>SENTRY_AUTH_TOKEN</code>, <code>COOLIFY_WEBHOOK_URL</code>.</li>
+      <li><strong>Never in image, never in compose</strong>: <code>SENTRY_AUTH_TOKEN</code>. The Angular Dockerfile accepts it as a <em>build arg</em> only.</li>
+      <li><strong>Never in chat / Teams / Slack</strong>: any token starting <code>sntrys_</code> or any URL containing a Coolify webhook ID.</li>
+      <li>Forks of this repo cannot read the <code>training</code> environment secrets — that's the whole point of environment-scoping.</li>
+    </ul>
+  </section>
+
+  <!-- ========================================================== -->
   <!-- 14:30 – 15:30  1.5 Tracing / logs / Replay                 -->
   <!-- ========================================================== -->
-  <section class="slide section" id="slide-31">
+  <section class="slide section" id="slide-35">
     <span class="timecode">14:30 – 15:30</span>
     <h1>1.5 Tracing, logi i Replay jako kontekst</h1>
     <p class="lede">From "an exception" to "the user clicked here, the browser sent that, the backend was slow on this span, the DB returned that" — one trace.</p>
   </section>
 
-  <section class="slide" id="slide-32">
+  <section class="slide" id="slide-36">
     <h2>Tracing model</h2>
     <h1>Transaction → spans → propagation <span class="pri">SURVEY</span></h1>
     <ul>
@@ -870,7 +949,7 @@ sentry-cli releases finalize "$REL"</pre>
     </ul>
   </section>
 
-  <section class="slide" id="slide-33">
+  <section class="slide" id="slide-37">
     <h2>Structured logs <span class="pri">SURVEY</span></h2>
     <h1>"Dołączanie customowych pól do logów"</h1>
     <ul>
@@ -883,7 +962,7 @@ sentry-cli releases finalize "$REL"</pre>
     </ul>
   </section>
 
-  <section class="slide" id="slide-34">
+  <section class="slide" id="slide-38">
     <h2>Session Replay</h2>
     <h1>What the user actually saw, with masking</h1>
     <ul>
@@ -894,7 +973,7 @@ sentry-cli releases finalize "$REL"</pre>
     </ul>
   </section>
 
-  <section class="slide trainer" id="slide-35">
+  <section class="slide trainer" id="slide-39">
     <span class="timecode">14:30 – 15:30</span>
     <h2>Trainer panel · Trace live</h2>
     <h1>Follow one request, end-to-end</h1>
@@ -935,7 +1014,7 @@ sentry replay list --period 1d</pre>
   <!-- ========================================================== -->
   <!-- 15:30 – 15:40  Break                                       -->
   <!-- ========================================================== -->
-  <section class="slide section" id="slide-36">
+  <section class="slide section" id="slide-40">
     <span class="timecode">15:30 – 15:40</span>
     <h1>Krótka przerwa · 10 min</h1>
     <p class="lede">Banner fires at 15:30. Final block is alerts + Android + AI + wrap-up.</p>
@@ -944,13 +1023,13 @@ sentry replay list --period 1d</pre>
   <!-- ========================================================== -->
   <!-- 15:40 – 16:15  1.6 Alerts / Jira / Bitbucket               -->
   <!-- ========================================================== -->
-  <section class="slide section" id="slide-37">
+  <section class="slide section" id="slide-41">
     <span class="timecode">15:40 – 16:15</span>
     <h1>1.6 Monitory, alerty i redukcja szumu</h1>
     <p class="lede">Match alerts to the way the team actually receives interruption — Teams, Jira, on-call — and avoid the most common alert-fatigue trap.</p>
   </section>
 
-  <section class="slide" id="slide-38">
+  <section class="slide" id="slide-42">
     <h2>Alert types in Sentry</h2>
     <h1>Issue, metric, anomaly, uptime, cron</h1>
     <ul>
@@ -962,7 +1041,7 @@ sentry replay list --period 1d</pre>
     </ul>
   </section>
 
-  <section class="slide" id="slide-39">
+  <section class="slide" id="slide-43">
     <h2>Jira + Bitbucket integration <span class="pri audience">JIRA WORKFLOW</span></h2>
     <h1>Two-way link, not a copy-paste workflow</h1>
     <ul>
@@ -974,7 +1053,7 @@ sentry replay list --period 1d</pre>
     </ul>
   </section>
 
-  <section class="slide" id="slide-40">
+  <section class="slide" id="slide-44">
     <h2>Noise reduction playbook</h2>
     <h1>How to <em>not</em> send a 3 AM page for nothing</h1>
     <ul>
@@ -987,7 +1066,7 @@ sentry replay list --period 1d</pre>
     </ul>
   </section>
 
-  <section class="slide trainer" id="slide-41">
+  <section class="slide trainer" id="slide-45">
     <span class="timecode">15:40 – 16:15</span>
     <h2>Trainer panel · Alerts</h2>
     <h1>Design one good alert, kill one bad one</h1>
@@ -1021,13 +1100,13 @@ sentry alert metrics list devpowers/javascript-angular</pre>
   <!-- ========================================================== -->
   <!-- 16:15 – 16:40  Android / mobile                            -->
   <!-- ========================================================== -->
-  <section class="slide section" id="slide-42">
+  <section class="slide section" id="slide-46">
     <span class="timecode">16:15 – 16:40</span>
     <h1>Android — pełne logi, filtrowanie po urządzeniu, feedback</h1>
     <p class="lede">Three survey priorities converge here: R8 logs, device filtering, custom fields. Live demo on the Galaxy S24 Ultra, with the AI Studio app as a fallback.</p>
   </section>
 
-  <section class="slide" id="slide-43">
+  <section class="slide" id="slide-47">
     <h2>Device filtering <span class="pri">SURVEY</span></h2>
     <h1>"Filtrowanie po konkretnych urządzeniach"</h1>
     <ul>
@@ -1038,7 +1117,7 @@ sentry alert metrics list devpowers/javascript-angular</pre>
     </ul>
   </section>
 
-  <section class="slide" id="slide-44">
+  <section class="slide" id="slide-48">
     <h2>Custom fields on Android <span class="pri">SURVEY</span></h2>
     <h1>"Customowe pola w logach"</h1>
     <ul>
@@ -1049,7 +1128,7 @@ sentry alert metrics list devpowers/javascript-angular</pre>
     </ul>
   </section>
 
-  <section class="slide" id="slide-45">
+  <section class="slide" id="slide-49">
     <h2>User feedback + Replay on mobile</h2>
     <h1>From "it crashed" to "this is what happened"</h1>
     <ul>
@@ -1060,7 +1139,7 @@ sentry alert metrics list devpowers/javascript-angular</pre>
     </ul>
   </section>
 
-  <section class="slide trainer" id="slide-46">
+  <section class="slide trainer" id="slide-50">
     <span class="timecode">16:15 – 16:40</span>
     <h2>Trainer panel · Android live</h2>
     <h1>S24 demo + Exercise 07</h1>
@@ -1100,13 +1179,13 @@ sentry proguard upload --org devpowers \
   <!-- ========================================================== -->
   <!-- 16:40 – 16:55  1.7 AI / Seer / MCP / dev CLI               -->
   <!-- ========================================================== -->
-  <section class="slide section" id="slide-47">
+  <section class="slide section" id="slide-51">
     <span class="timecode">16:40 – 16:55</span>
     <h1>1.7 AI w Sentry — Seer, MCP, dev CLI</h1>
     <p class="lede">Short module by design. The point is to make AI a <em>supplement</em>, not the primary workflow — survey put Sentry-AI interest at ~3.3/5.</p>
   </section>
 
-  <section class="slide" id="slide-48">
+  <section class="slide" id="slide-52">
     <h2>Seer</h2>
     <h1>Treat root-cause AI as a hypothesis</h1>
     <ul>
@@ -1118,7 +1197,7 @@ sentry proguard upload --org devpowers \
     </ul>
   </section>
 
-  <section class="slide" id="slide-49">
+  <section class="slide" id="slide-53">
     <h2>Sentry MCP + dev CLI</h2>
     <h1>Your IDE/agent talks to Sentry; you still drive</h1>
     <ul>
@@ -1134,13 +1213,13 @@ sentry proguard upload --org devpowers \
   <!-- ========================================================== -->
   <!-- 16:55 – 17:00  1.8 Wrap-up                                 -->
   <!-- ========================================================== -->
-  <section class="slide section" id="slide-50">
+  <section class="slide section" id="slide-54">
     <span class="timecode">16:55 – 17:00</span>
     <h1>1.8 Checklista wdrożeniowa</h1>
     <p class="lede">Walk out with five concrete actions per participant, mapped to their existing Jira/Bitbucket workflow.</p>
   </section>
 
-  <section class="slide" id="slide-51">
+  <section class="slide" id="slide-55">
     <h2>Production checklist</h2>
     <h1>Minimum standard for the next Sentry project you start</h1>
     <ul>
@@ -1152,7 +1231,7 @@ sentry proguard upload --org devpowers \
     </ul>
   </section>
 
-  <section class="slide trainer" id="slide-52">
+  <section class="slide trainer" id="slide-56">
     <span class="timecode">16:55 – 17:00</span>
     <h2>Trainer panel · Closing</h2>
     <h1>Wrap, exercise 08, Q&amp;A, next steps</h1>
@@ -1189,7 +1268,7 @@ sentry alert issues list devpowers/android</pre>
     </div>
   </section>
 
-  <section class="slide title" id="slide-53">
+  <section class="slide title" id="slide-57">
     <div class="kicker">Dziękuję — questions?</div>
     <h1>Idziemy ulepszać produkcję.</h1>
     <p class="lede">
