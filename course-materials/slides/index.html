@@ -447,7 +447,7 @@
   <section class="slide section" id="slide-5">
     <span class="timecode">09:00 – 09:20</span>
     <h1>Welcome, access, preflight</h1>
-    <p class="lede">Get everyone signed in, oriented, and into the workshop projects before we touch a single SDK.</p>
+    <p class="lede">Zaloguj wszystkich, zorientuj w organizacji Sentry i wpuść do projektów szkoleniowych — zanim dotkniemy jakiegokolwiek SDK.</p>
   </section>
 
   <section class="slide trainer" id="slide-6">
@@ -522,7 +522,7 @@ sentry project list</pre>
   <section class="slide section" id="slide-7">
     <span class="timecode">09:20 – 10:10</span>
     <h1>1.1 Sentry w workflow developera</h1>
-    <p class="lede">From "what alert just fired?" to a fix decision in five minutes — covering the Sentry object model and a full issue lifecycle walk-through.</p>
+    <p class="lede">Od "co właśnie odpaliło alert?" do decyzji o fixie w pięć minut — model obiektowy Sentry plus pełny przegląd cyklu życia Issue.</p>
   </section>
 
   <section class="slide" id="slide-8">
@@ -591,43 +591,65 @@ sentry issue plan &lt;issue-id&gt;</pre>
   <section class="slide section" id="slide-11">
     <span class="timecode">10:10 – 11:00</span>
     <h1>1.2 Projekty, SDK, custom context, prywatność</h1>
-    <p class="lede">Design the configuration so the first 100 production events arrive useful and non-sensitive — not the other way around.</p>
+    <p class="lede">Zaprojektuj konfigurację tak, żeby pierwsze 100 eventów produkcyjnych przyszło użyteczne i bez wrażliwych danych — nie odwrotnie.</p>
   </section>
 
   <section class="slide" id="slide-12">
-    <h2>Configuration anchors</h2>
+    <h2>Punkty konfiguracji</h2>
     <h1>DSN, environment, release, sample rate</h1>
     <ul>
-      <li><strong>DSN</strong> — runtime, env var, never hard-coded in mobile binaries you cannot rotate quickly.</li>
-      <li><strong>environment</strong> — <code>training</code> today; in real life <code>production</code>, <code>staging</code>, <code>preview</code>, <code>development</code>.</li>
-      <li><strong>release</strong> — immutable build identifier, e.g. <code>angular@&lt;short-sha&gt;</code>. Same value embedded at build time and used to upload source artifacts.</li>
-      <li><strong>tracesSampleRate</strong> — <code>1.0</code> for training, target <code>0.05–0.20</code> in prod for cost.</li>
-      <li><strong>sendDefaultPii</strong> — default <code>false</code> for regulated stacks. Opt in only after a data review.</li>
+      <li><strong>DSN</strong> (Data Source Name) — publiczny URL, ustawiany przez env var; nie wbudowywać na stałe w mobilne binarki, których nie da się szybko rotować.</li>
+      <li><strong>environment</strong> — dziś <code>training</code>; w realu <code>production</code>, <code>staging</code>, <code>preview</code>, <code>development</code>.</li>
+      <li><strong>release</strong> — niezmienny identyfikator buildu, np. <code>angular@&lt;short-sha&gt;</code>. Ta sama wartość w SDK init <em>i</em> przy uploadzie source artefaktów.</li>
+      <li><strong>tracesSampleRate</strong> — <code>1.0</code> w szkoleniu, w prod celuj w <code>0.05–0.20</code> ze względu na koszt.</li>
+      <li><strong>sendDefaultPii</strong> — domyślnie <code>false</code> dla regulowanych branż. Włączamy field-by-field po data review.</li>
     </ul>
+    <details>
+      <summary>Best practices per platforma — kliknij</summary>
+      <p><strong>Spring Boot</strong>: <code>sentry.traces-sample-rate=0.05–0.20</code>; rejestruj <code>TracesSamplerCallback</code> dla różnych route'ów. Release: <code>-Dsentry.release=$RELEASE</code> przy <code>java -jar</code>. Sampler nie powinien dotykać error eventów — te zawsze idą.</p>
+      <p><strong>Angular</strong>: <code>tracesSampleRate: 0.05</code> + <code>replaysSessionSampleRate: 0.05</code> + <code>replaysOnErrorSampleRate: 1.0</code> (zachowuje replay przy błędzie). Release: <code>angular@$SHA</code> identyczny w <code>main.ts</code> oraz <code>sentry-cli sourcemaps upload</code>.</p>
+      <p><strong>Android</strong>: <code>options.tracesSampleRate = 0.05</code>. Release: <strong>nie ustawiaj ręcznie</strong> — SDK używa <code>packageName@versionName+versionCode</code> automatycznie. Override psuje join z Play Console.</p>
+      <p><strong>iOS</strong>: tak samo — zostaw <code>options.releaseName</code> unset. dSYM upload wymaga, żeby ten identyfikator zgadzał się z tym, co poszło do App Store Connect.</p>
+    </details>
   </section>
 
   <section class="slide" id="slide-13">
     <h2>Privacy baseline <span class="pri">SURVEY</span></h2>
-    <h1>Data scrubbing — at SDK and at project level</h1>
+    <h1>Scrubbing — w SDK i na poziomie projektu</h1>
     <ul>
-      <li><strong>SDK side</strong>: <code>beforeSend</code> / <code>beforeBreadcrumb</code> to strip request bodies, tokens, postal codes, PESEL-shaped fields.</li>
-      <li><strong>Project side</strong>: Settings → Security &amp; Privacy → data scrubbers, sensitive fields, regex rules.</li>
-      <li>Replay: <code>maskAllText: true</code>, <code>blockAllMedia: true</code> are our defaults — already wired in <code>apps/angular/src/main.ts</code>.</li>
-      <li>Android: <code>options.isSendDefaultPii = false</code>; never log PESEL/postal code; demo this in <code>SentryDemoApplication.kt</code>.</li>
-      <li>"Never weaken scrubbing to make a demo easier" — this is the only hill we die on today.</li>
+      <li><strong>Strona SDK</strong>: <code>beforeSend</code> / <code>beforeBreadcrumb</code> usuwa request body, tokeny, kody pocztowe, pola w kształcie PESEL/NIP/REGON.</li>
+      <li><strong>Strona projektu</strong>: Settings → Security &amp; Privacy → data scrubbers, sensitive fields, regex rules. To safety net, kiedy SDK code zregresuje.</li>
+      <li>Replay: <code>maskAllText: true</code>, <code>blockAllMedia: true</code> jako default — już wpięte w <code>apps/angular/src/main.ts</code>.</li>
+      <li>Android: <code>options.isSendDefaultPii = false</code>; nigdy nie loguj PESEL/postal; demo w <code>SentryDemoApplication.kt</code>.</li>
+      <li>"Nigdy nie osłabiamy scrubbingu, żeby demo było łatwiejsze" — jedyny twardy red line dzisiaj.</li>
     </ul>
+    <details>
+      <summary>Whitelist vs. blacklist — dlaczego whitelisting wygrywa</summary>
+      <p><strong>Blacklist</strong> ("zmaskuj te pola PESEL/email/itd.") zawsze zostawia dziurę — kiedy programista doda nowe pole, ono wycieka.</p>
+      <p><strong>Whitelist</strong> ("zmaskuj wszystko, unmask te konkretne klasy CSS / view tagi") jest auditowalny i bezpieczny by default.</p>
+      <p>Replay we wszystkich SDK Sentry implementuje whitelist mode jako domyślny. Angular: <code>unmask: ['.safe-to-show']</code>. Android: <code>Modifier.sentryReplayUnmask()</code>. iOS: <code>.sentryReplayUnmask()</code>.</p>
+    </details>
   </section>
 
   <section class="slide" id="slide-14">
-    <h2>Custom context — what to add, what to never add <span class="pri">SURVEY</span></h2>
-    <h1>Tags vs. extra vs. user vs. context</h1>
+    <h2>Custom context — co dodać, czego nigdy <span class="pri">SURVEY</span></h2>
+    <h1>Tags vs. context vs. extra vs. user</h1>
     <ul>
-      <li><strong>Tags</strong> — indexable, searchable, low-cardinality. Good: <code>coverage</code>, <code>vehicleType</code>, <code>riskBand</code>, <code>app.locale</code>. Bad: PESEL, request ID.</li>
-      <li><strong>Extra / context</strong> — high-cardinality blobs, not indexed. Good: parsed config, structured shape of the failing payload.</li>
-      <li><strong>User</strong> — pseudonymous ID, never email/phone for this audience.</li>
-      <li><strong>Breadcrumbs</strong> — automatic + manual narrative.</li>
-      <li><strong>Logs</strong> — structured key-value, correlated to event and trace. <code>Sentry.logger.info(Sentry.logger.fmt`...`, {...})</code>.</li>
+      <li><strong>Tags</strong> — indeksowalne, searchable, <em>niska kardynalność</em> (≤ ~100 unikalnych wartości na klucz). Dobre: <code>coverage</code>, <code>vehicleType</code>, <code>riskBand</code>. Złe: PESEL, request ID, <code>quote.id</code>.</li>
+      <li><strong>Context</strong> — structured blobs, nie indeksowane. Dobre: parsed config, kształt failującego payloadu. Preferuj nad legacy <code>extra</code>.</li>
+      <li><strong>User</strong> — pseudonimowy ID; nigdy email/telefon dla tej audience.</li>
+      <li><strong>Breadcrumbs</strong> — automatyczne + manualna narracja. Ring buffer 100 wpisów — drop noise zanim zaleje sygnał.</li>
+      <li><strong>Logs</strong> — structured key-value, skorelowane z eventem i trace. <code>Sentry.logger.info(Sentry.logger.fmt`...`, {...})</code>.</li>
     </ul>
+    <details>
+      <summary>Anty-wzorce — czego unikać</summary>
+      <ul>
+        <li><strong>Tag z message:</strong> <code>"Failed to find policy 12345"</code> → każdy ID nowa grupa → alert fatigue. Stable message + ID w context.</li>
+        <li><strong>Wysoka kardynalność tag:</strong> <code>quote.id</code> jako tag → blow up tag aggregations + quota. Idzie do context.</li>
+        <li><strong>Re-tagging device info na Androidzie/iOS:</strong> SDK już ustawia <code>device.model</code>, <code>os.version</code>, <code>app.version</code>. Duplikowanie = quota burn.</li>
+        <li><strong>Sample 1.0 traces w prod:</strong> bilingowe span'y; spróbkuj 0.05–0.20, użyj <code>tracesSampler</code> dla per-route override.</li>
+      </ul>
+    </details>
   </section>
 
   <section class="slide trainer" id="slide-15">
@@ -671,7 +693,7 @@ sentry project view devpowers/android</pre>
   <section class="slide section" id="slide-16">
     <span class="timecode">11:00 – 11:15</span>
     <h1>Break · 15 min</h1>
-    <p class="lede">Wracamy o 11:15. The 11:00 banner will pop on its own — dismiss when you're back.</p>
+    <p class="lede">Wracamy o 11:15. Banner 11:00 wyskoczy sam — kliknij żeby ukryć kiedy wrócisz.</p>
   </section>
 
   <!-- ========================================================== -->
@@ -680,7 +702,7 @@ sentry project view devpowers/android</pre>
   <section class="slide section" id="slide-17">
     <span class="timecode">11:15 – 12:00</span>
     <h1>Angular + Spring Boot 4 — onboarding na żywo</h1>
-    <p class="lede">Wizard vs manual install, DSN flow, verify event, and trace propagation from the browser through <code>/api/quotes</code>.</p>
+    <p class="lede">Wizard vs. manualna instalacja, flow DSN, verify event, propagacja trace z przeglądarki przez <code>/api/quotes</code>.</p>
   </section>
 
   <section class="slide" id="slide-18">
@@ -755,7 +777,7 @@ $env:DEMO_SCENARIOS_ENABLED="true"
   <section class="slide section" id="slide-21">
     <span class="timecode">12:00 – 13:00</span>
     <h1>Triage — the hidden PolicyLab quote bug</h1>
-    <p class="lede">Module 1.3 in practice: from a Sentry issue to a root-cause hypothesis using stack trace, breadcrumbs, tags, release, suspect commits.</p>
+    <p class="lede">Moduł 1.3 w praktyce: od Issue w Sentry do hipotezy root-cause — stack trace, breadcrumbs, tags, release, suspect commits.</p>
   </section>
 
   <section class="slide trainer" id="slide-22">
@@ -802,7 +824,7 @@ sentry trace view &lt;trace-id&gt;</pre>
   <section class="slide section" id="slide-23">
     <span class="timecode">13:00 – 13:30</span>
     <h1>Lunch · 30 min</h1>
-    <p class="lede">Wracamy o 13:30. Banner about lunch fires at 13:00. Banner with the survey link fires at 13:30 — share it immediately on Teams.</p>
+    <p class="lede">Wracamy o 13:30. Banner z linkiem do ankiety wyskoczy o 13:30 — wklej go od razu na Teams.</p>
   </section>
 
   <section class="slide" id="slide-24">
@@ -826,7 +848,7 @@ sentry trace view &lt;trace-id&gt;</pre>
   <section class="slide section" id="slide-25">
     <span class="timecode">13:30 – 14:30</span>
     <h1>1.4 Releases, source maps, R8/ProGuard, dSYM</h1>
-    <p class="lede">The most expensive afternoon module in setup terms, but the one that unlocks "readable stack traces in prod" — directly tied to a survey priority.</p>
+    <p class="lede">Najbardziej setup-heavy moduł popołudnia, ale ten odblokowujący "czytelne stack trace w prod" — wprost powiązany z priorytetem z ankiety.</p>
   </section>
 
   <section class="slide" id="slide-26">
@@ -861,15 +883,25 @@ sentry trace view &lt;trace-id&gt;</pre>
   </section>
 
   <section class="slide" id="slide-28">
-    <h2>Android R8/ProGuard — explicit walkthrough <span class="pri">SURVEY</span></h2>
-    <h1>"Odzyskiwanie pełnych logów z Android bez minify"</h1>
+    <h2>Android R8/ProGuard — pełen walkthrough <span class="pri">SURVEY</span></h2>
+    <h1>"Odzyskiwanie pełnych logów z Androida bez minify"</h1>
     <ul>
-      <li><code>release</code> build minifies and obfuscates with R8 → stack frames become <code>a.b.c</code>.</li>
-      <li>The Sentry Android Gradle plugin (already in <code>apps/android/app/build.gradle.kts</code>) generates a mapping file per build and uploads it tagged by <code>versionName+versionCode</code> when <code>SENTRY_AUTH_TOKEN</code> is exported.</li>
-      <li>Sentry de-obfuscates on the server. The stack you see in the Issue is the original Kotlin/Java.</li>
-      <li>If you don't see real names in prod: check that the build did <em>not</em> regenerate the mapping after upload, and that the <code>versionName+versionCode</code> in the event matches the uploaded mapping.</li>
-      <li>Verification: <code>sentry proguard upload</code> for a manual reupload from a clean machine.</li>
+      <li><code>release</code> build minifikuje i obfuskuje kod <strong>R8</strong> (następca ProGuard) → klasy stają się <code>a.b.c</code>.</li>
+      <li>Sentry Android Gradle plugin (wpięty w <code>apps/android/app/build.gradle.kts</code>) generuje <code>mapping.txt</code> dla każdego buildu i uploaduje pod tag <code>versionName+versionCode</code> kiedy <code>SENTRY_AUTH_TOKEN</code> jest dostępny.</li>
+      <li>Sentry deobfuskuje po stronie serwera. Stack, który widzisz w Issue, jest oryginalnym Kotlin/Java.</li>
+      <li>Jeśli w prod nie widzisz prawdziwych nazw: build <em>nie powinien</em> zregenerować mappingu po uploadzie; <code>versionName+versionCode</code> w evencie musi się zgadzać z uploadem.</li>
+      <li>Weryfikacja: <code>sentry-cli upload-dif --type=proguard mapping.txt</code> dla ręcznego reuploadu z czystej maszyny.</li>
     </ul>
+    <details>
+      <summary>Słownik: R8, ProGuard, dSYM, source map, source bundle</summary>
+      <ul>
+        <li><strong>R8</strong> — następca ProGuard, default minifier w Android Gradle Plugin od ~2019. Robi minify + obfuscate + tree-shaking w jednym przebiegu. Wynik: <code>mapping.txt</code> tłumaczący <code>a.b.c</code> → <code>com.policylab.QuoteRepository</code>.</li>
+        <li><strong>ProGuard</strong> — starszy obfuscator; semantyka <code>mapping.txt</code> taka sama jak R8. Sentry obsługuje oba tym samym uploadem.</li>
+        <li><strong>dSYM</strong> (Debug Symbols, Apple) — <code>.dSYM</code> bundle wygenerowany przez Xcode przy buildzie archive. Mapuje pamięciowe adresy native frames na symbole Swift/Obj-C. UUID dSYMu musi pasować do wydanej binarki.</li>
+        <li><strong>source map</strong> — plik <code>.js.map</code> dla minifikowanego JavaScriptu. Mapuje minified frames na oryginalny TypeScript. Sentry używa <em>Debug IDs</em> (content-addressed) zamiast ścieżek, więc kolejność uploadu i deployu jest mniej krucha.</li>
+        <li><strong>source bundle (JVM)</strong> — ZIP z plikami <code>.java</code>/<code>.kt</code> uploadowany przez Sentry Gradle plugin (<code>includeSourceContext=true</code>). Daje "source context" w stack trace (linie kodu wokół wyjątku) bez wystawiania źródeł publicznie.</li>
+      </ul>
+    </details>
   </section>
 
   <section class="slide" id="slide-29">
@@ -993,15 +1025,24 @@ git push</pre>
   </section>
 
   <section class="slide" id="slide-34">
-    <h2>What stays private, what stays public</h2>
-    <h1>The contract you can show your security team</h1>
+    <h2>Co publiczne, co tajne</h2>
+    <h1>Kontrakt, który możesz pokazać security team</h1>
     <ul>
-      <li><strong>Public</strong>: DSNs (4 of them), the public deploy FQDN, ghcr image names, Coolify FQDN, source code.</li>
-      <li><strong>Secret (GH env)</strong>: <code>SENTRY_AUTH_TOKEN</code>, <code>COOLIFY_WEBHOOK_URL</code>.</li>
-      <li><strong>Never in image, never in compose</strong>: <code>SENTRY_AUTH_TOKEN</code>. The Angular Dockerfile accepts it as a <em>build arg</em> only.</li>
-      <li><strong>Never in chat / Teams / Slack</strong>: any token starting <code>sntrys_</code> or any URL containing a Coolify webhook ID.</li>
-      <li>Forks of this repo cannot read the <code>training</code> environment secrets — that's the whole point of environment-scoping.</li>
+      <li><strong>Publiczne</strong>: DSN (4 sztuki), publiczna <strong>FQDN</strong> deploya, nazwy obrazów <strong>GHCR</strong>, FQDN Coolify, kod źródłowy.</li>
+      <li><strong>Tajne (GH env)</strong>: <code>SENTRY_AUTH_TOKEN</code>, <code>COOLIFY_WEBHOOK_URL</code>.</li>
+      <li><strong>Nigdy w obrazie, nigdy w compose</strong>: <code>SENTRY_AUTH_TOKEN</code>. Angular Dockerfile akceptuje go tylko jako <em>build arg</em>.</li>
+      <li><strong>Nigdy na czacie / Teams / Slack</strong>: żaden token zaczynający się od <code>sntrys_</code> ani URL z webhookiem Coolify.</li>
+      <li>Fork tego repo <em>nie</em> może odczytać sekretów ze środowiska <code>training</code> — taki jest sens environment-scoping.</li>
     </ul>
+    <details>
+      <summary>Słownik skrótów na tym slajdzie — kliknij</summary>
+      <ul>
+        <li><strong>FQDN</strong> (Fully Qualified Domain Name) — pełna nazwa domeny z subdomenami, np. <code>policylab.edukey.ai</code>. W przeciwieństwie do hostname'a (<code>policylab</code>), FQDN jest unikalny w globalnym DNS.</li>
+        <li><strong>GHCR</strong> (GitHub Container Registry) — registry obrazów Docker zintegrowany z GitHub, host: <code>ghcr.io</code>. Każdy obraz należy do user/org GitHuba, np. <code>ghcr.io/lucasmatuszewski/sentry-course-06-2026-web</code>. Auth tym samym tokenem co GitHub Actions (<code>GITHUB_TOKEN</code> ma scope <code>packages:write</code>).</li>
+        <li><strong>environment-scoping</strong> — w GitHub Actions sekret może być przypięty do "environment" zamiast do repo. Workflow musi explicite <em>request</em> ten environment (np. <code>environment: training</code>), wtedy dopiero ma dostęp do sekretu. Forki PR-ów nie mogą tego użyć.</li>
+        <li><strong>build arg vs. runtime env</strong> — <code>ARG</code> w Dockerfile = wartość dostępna w czasie buildu, nie w runtime image. <code>ENV</code> = wartość w działającym kontenerze. <code>SENTRY_AUTH_TOKEN</code> używamy jako ARG (potrzebny do uploadu artifactów), nigdy jako ENV (kontener go nie potrzebuje).</li>
+      </ul>
+    </details>
   </section>
 
   <!-- ========================================================== -->
@@ -1010,19 +1051,29 @@ git push</pre>
   <section class="slide section" id="slide-35">
     <span class="timecode">14:30 – 15:30</span>
     <h1>1.5 Tracing, logi i Replay jako kontekst</h1>
-    <p class="lede">From "an exception" to "the user clicked here, the browser sent that, the backend was slow on this span, the DB returned that" — one trace.</p>
+    <p class="lede">Od "wyjątku" do "user kliknął tu, przeglądarka wysłała to, backend był wolny na tym spanie, DB zwróciła tamto" — jeden trace.</p>
   </section>
 
   <section class="slide" id="slide-36">
     <h2>Tracing model</h2>
     <h1>Transaction → spans → propagation <span class="pri">SURVEY</span></h1>
     <ul>
-      <li>A <strong>transaction</strong> is one user-facing operation (route load, API call, message handler). Contains <strong>spans</strong>.</li>
-      <li><strong>Trace propagation</strong>: W3C <code>traceparent</code> + Sentry <code>sentry-trace</code> + <code>baggage</code> headers. Angular's <code>tracePropagationTargets</code> includes <code>/^\/api/</code> — that is why Spring joins the trace.</li>
-      <li>Spring's OpenTelemetry agent emits HTTP spans automatically. Custom spans on pricing rules already exist in <code>SentryQuoteTelemetry</code>.</li>
-      <li>You see the whole waterfall in one place — frontend nav, fetch, backend handler, DB call.</li>
-      <li>Sampling: <code>tracesSampleRate=1.0</code> today, target <code>0.05–0.20</code> in prod. Errors get a transaction by default.</li>
+      <li><strong>Transaction</strong> to jedna user-facing operacja (load route, API call, message handler). Zawiera <strong>spans</strong>.</li>
+      <li><strong>Trace propagation</strong>: nagłówki W3C <code>traceparent</code> + Sentry <code>sentry-trace</code> + <code>baggage</code>. Angularowy <code>tracePropagationTargets</code> ma <code>/^\/api/</code> — dlatego Spring dołącza do śladu.</li>
+      <li>OpenTelemetry agent w Springu automatycznie tworzy spany HTTP. Custom spany na regułach pricingu mamy w <code>SentryQuoteTelemetry</code>.</li>
+      <li>Cały waterfall w jednym miejscu — nav we frontendzie, fetch, handler backendu, DB call.</li>
+      <li>Sampling: <code>tracesSampleRate=1.0</code> dziś, w prod celuj <code>0.05–0.20</code>. Eventy z errorem dostają transaction by default.</li>
     </ul>
+    <details>
+      <summary>Best practices: tracing w produkcji</summary>
+      <ul>
+        <li><strong>Spring</strong>: <code>tracesSampler</code> per route — <code>POST /api/quotes</code> 50%, healthcheck 0%. Wymaga zbioru danych zanim zaczniesz tuning.</li>
+        <li><strong>Angular</strong>: <code>tracePropagationTargets</code> tylko first-party hosts. <em>Nigdy</em> nie propaguj do third-party CDN, analytics, ad networks — ich serwery odrzucają nieznane nagłówki albo (gorzej) je logują.</li>
+        <li><strong>Android/iOS</strong>: dodaj <code>SentryOkHttpInterceptor</code> / <code>URLSession</code> integration. Mobilne sesje są długie; sample <code>0.05</code>.</li>
+        <li><strong>Spans</strong> są bilingowe; <strong>error eventy</strong> nie. Sampler nigdy nie powinien blokować error eventów.</li>
+        <li><strong>Custom span</strong> tylko tam gdzie chcesz widzieć latencję jako label (rule evaluation, DB query batch). Mniej znaczy więcej.</li>
+      </ul>
+    </details>
   </section>
 
   <section class="slide" id="slide-37">
@@ -1093,7 +1144,7 @@ sentry replay list --period 1d</pre>
   <section class="slide section" id="slide-40">
     <span class="timecode">15:30 – 15:40</span>
     <h1>Krótka przerwa · 10 min</h1>
-    <p class="lede">Banner fires at 15:30. Final block is alerts + Android + AI + wrap-up.</p>
+    <p class="lede">Banner odpala się o 15:30. Ostatni blok to alerty + Android + AI + wrap-up.</p>
   </section>
 
   <!-- ========================================================== -->
@@ -1102,44 +1153,66 @@ sentry replay list --period 1d</pre>
   <section class="slide section" id="slide-41">
     <span class="timecode">15:40 – 16:15</span>
     <h1>1.6 Monitory, alerty i redukcja szumu</h1>
-    <p class="lede">Match alerts to the way the team actually receives interruption — Teams, Jira, on-call — and avoid the most common alert-fatigue trap.</p>
+    <p class="lede">Dopasuj alerty do tego jak zespół naprawdę reaguje na przerwy — Teams, Jira, on-call — i unikaj najczęstszej pułapki alert fatigue.</p>
   </section>
 
   <section class="slide" id="slide-42">
-    <h2>Alert types in Sentry</h2>
+    <h2>Typy alertów w Sentry</h2>
     <h1>Issue, metric, anomaly, uptime, cron</h1>
     <ul>
-      <li><strong>Issue alerts</strong> — first-seen, regression, frequency spike per environment.</li>
+      <li><strong>Issue alerts</strong> — first-seen, regression, spike częstotliwości per environment.</li>
       <li><strong>Metric alerts</strong> — error rate, p95 transaction duration, span throughput.</li>
-      <li><strong>Anomaly</strong> — automatic baseline; useful for noisy services where thresholds drift.</li>
-      <li><strong>Uptime monitor</strong> — synthetic ping on a public endpoint.</li>
-      <li><strong>Cron</strong> — heartbeat from a scheduled job; pages you when it stops checking in.</li>
+      <li><strong>Anomaly</strong> — automatyczny baseline; przydatne dla noisy services gdzie thresholdy zmieniają się w czasie.</li>
+      <li><strong>Uptime monitor</strong> — syntetyczny ping na publiczny endpoint.</li>
+      <li><strong>Cron</strong> — heartbeat ze scheduled joba; alarmuje kiedy job przestaje się meldować.</li>
     </ul>
   </section>
 
   <section class="slide" id="slide-43">
     <h2>Jira + Bitbucket integration <span class="pri audience">JIRA WORKFLOW</span></h2>
-    <h1>Two-way link, not a copy-paste workflow</h1>
+    <h1>Two-way link, nie copy-paste workflow</h1>
     <ul>
-      <li>Issue alert rule → "Create Jira ticket" action. Sentry stamps the issue with the Jira key; Jira ticket links back to the Sentry issue.</li>
-      <li>Bitbucket integration provides commit linking + suspect-commit detection on PRs.</li>
-      <li>Ownership rules: regex/path-based mapping of code → team → Jira board.</li>
-      <li>For a regulated stack: keep Jira as the system of record; Sentry feeds it. Don't try to use Sentry comments as workflow.</li>
-      <li>For the workshop org we do not enable Jira/Bitbucket integrations live — we describe the wiring instead.</li>
+      <li>Issue alert rule → akcja "Create Jira ticket". Sentry stempluje issue Jira key; Jira ticket linkuje z powrotem do Sentry.</li>
+      <li><strong>Native Bitbucket integration</strong> (Settings → Integrations → Bitbucket) odblokowuje <em>suspect commits</em>, code mappings, "Create Bitbucket issue" action — to jest the unlock dla insurance teamu na Bitbucket Cloud/Server.</li>
+      <li><strong>Ownership rules</strong>: regex/path-based mapping kod → team → Jira board. <a href="https://docs.sentry.io/product/issues/ownership-rules/" target="_blank" rel="noopener">docs.sentry.io/product/issues/ownership-rules</a>.</li>
+      <li>Dla regulowanego stacka: <strong>Jira jest system of record</strong>; Sentry karmi go danymi. Nie próbuj robić workflow w Sentry comments.</li>
+      <li>W organizacji szkoleniowej <em>nie</em> włączamy integracji live — opisujemy okablowanie.</li>
     </ul>
+    <details>
+      <summary>Krok po kroku: jak podłączyć Sentry ↔ Bitbucket ↔ Jira</summary>
+      <ol>
+        <li><strong>Bitbucket integration</strong>: Sentry Settings → Integrations → Bitbucket → Install. Autoryzuj OAuth dla workspace'u. Wybierz repozytoria do podpięcia.</li>
+        <li><strong>Code mappings</strong>: Sentry sam zaproponuje mapping ścieżek (np. <code>com/policylab/api/quote/QuoteService.java</code> → repo path <code>apps/api-spring/src/main/java/.../QuoteService.java</code>). Akceptuj.</li>
+        <li><strong>Suspect commits</strong> działają automatycznie kiedy: (a) release ma <code>set-commits</code> (robi to <code>getsentry/action-release</code>); (b) code mappings są skonfigurowane; (c) Bitbucket integration jest podpięty.</li>
+        <li><strong>Jira integration</strong>: Sentry Settings → Integrations → Jira Cloud/Server. Authorize, wybierz projekty Jira. Wynik: w każdym Issue Sentry pojawia się "Create Jira Ticket" + "Link to Existing".</li>
+        <li><strong>Alert rule action</strong>: Alerts → Create alert → "Then perform these actions" → "Create a Jira ticket in [project] of type [Bug]". Konfiguruje się raz, automatyzuje workflow.</li>
+        <li><strong>Bonus</strong>: kiedy Sentry release zawiera commit naprawiający bug, Sentry oznacza Issue jako <code>resolved-in-release</code> automatycznie. Trend wykresu robi się sam.</li>
+      </ol>
+      <p>Demo na żywo wymaga admin w organizacji Sentry (nie dla uczestników kursu). Jeśli mamy czas w długiej przerwie — możemy razem podłączyć Bitbucket sandbox.</p>
+    </details>
   </section>
 
   <section class="slide" id="slide-44">
     <h2>Noise reduction playbook</h2>
-    <h1>How to <em>not</em> send a 3 AM page for nothing</h1>
+    <h1>Jak <em>nie</em> wysłać 3:00 AM page o niczym</h1>
     <ul>
-      <li>Always scope alerts to <code>environment:production</code>. Never let a staging error wake on-call.</li>
-      <li>Threshold: <em>new issue in last 1h with &gt;5 users affected</em> beats <em>any error happens</em>.</li>
-      <li>Throttle: per-rule cooldown to avoid alert storms during incidents.</li>
-      <li>Ownership routing: page the team that owns the file, not "the channel".</li>
-      <li>Inbound filters and <code>ignoreErrors</code> for known-noisy patterns (browser extensions, dead bots).</li>
-      <li>Quarterly alert-rule review — if an alert never fires <em>or</em> is always dismissed, kill it.</li>
+      <li>Zawsze scope alertów do <code>environment:production</code>. Nigdy nie pozwól błędowi ze staging obudzić on-call.</li>
+      <li>Threshold: <em>new issue w ostatniej 1h z &gt;5 affected users</em> bije <em>jakikolwiek error się dzieje</em>.</li>
+      <li>Throttle: per-rule cooldown żeby uniknąć alert storms podczas incydentu.</li>
+      <li>Ownership routing: paguj team który posiada plik, nie "kanał".</li>
+      <li>Inbound filters i <code>ignoreErrors</code> dla znanych noisy patterns (browser extensions, dead bots).</li>
+      <li>Kwartalny review alert rules — jeśli alert nigdy nie odpalił <em>albo</em> zawsze jest dismissed, kill go.</li>
     </ul>
+    <details>
+      <summary>CI/CD przykłady w tym repo — co jest gotowe, co nie</summary>
+      <ul>
+        <li><strong>GitHub Actions</strong> (<code>.github/workflows/</code>) — pełen, działający, produkcyjny przykład. <code>ci.yml</code> uruchamia się na każdym PR; <code>release.yml</code> buduje obrazy, uploaduje source artefacts, deployuje na Coolify.</li>
+        <li><strong>Bitbucket Pipelines</strong> (<code>course-materials/ci-cd/bitbucket-pipelines.example.yml</code>) — annotated starting point. Wymaga ~30 min dostosowania: dodać branch trigger, dopasować ścieżkę <code>dist</code>, dopiąć deployment environment, dodać Java/Spring job (obecnie tylko Angular).</li>
+        <li><strong>Jenkinsfile</strong> (<code>course-materials/ci-cd/Jenkinsfile.example</code>) — starting point. Wymaga ~30 min: prawdziwy agent label, <code>tools { jdk }</code> block dla Springa, SCM stage dla Bitbucket Server.</li>
+        <li><strong>release-contract.md</strong> — provider-neutral checklist; demo-ready as-is.</li>
+      </ul>
+      <p>Honest framing dla audience: "Pokazuję GitHub na żywo, dla Bitbucket i Jenkins dostajecie wzorce do replikacji. Native Bitbucket integration w Sentry to osobny temat — odblokowuje suspect commits, niezależnie od pipeline'u."</p>
+    </details>
   </section>
 
   <section class="slide trainer" id="slide-45">
@@ -1179,18 +1252,23 @@ sentry alert metrics list devpowers/javascript-angular</pre>
   <section class="slide section" id="slide-46">
     <span class="timecode">16:15 – 16:40</span>
     <h1>Android — pełne logi, filtrowanie po urządzeniu, feedback</h1>
-    <p class="lede">Three survey priorities converge here: R8 logs, device filtering, custom fields. Live demo on the Galaxy S24 Ultra, with the AI Studio app as a fallback.</p>
+    <p class="lede">Tu zbiegają się trzy priorytety z ankiety: R8 logs, device filtering, custom fields. Live demo na Galaxy S24 Ultra, AI Studio app jako fallback.</p>
   </section>
 
   <section class="slide" id="slide-47">
     <h2>Device filtering <span class="pri">SURVEY</span></h2>
     <h1>"Filtrowanie po konkretnych urządzeniach"</h1>
     <ul>
-      <li>Sentry auto-tags every event with device model, manufacturer, OS, OS version, screen, locale, battery, network type.</li>
-      <li>Issue list filter: <code>device.model:"SM-S928B"</code> or <code>os.name:Android os.version:&gt;=15</code>.</li>
-      <li>Cross-issue analysis in Explore (Discover): aggregate by <code>device.model</code> → see which devices dominate a specific exception.</li>
-      <li>If you ship a per-OEM hotfix, an alert scoped <code>device.manufacturer:samsung</code> can fire it.</li>
+      <li>Sentry automatycznie taguje każdy event: <code>device.model</code>, <code>device.manufacturer</code>, <code>os.name</code>, <code>os.version</code>, <code>screen</code>, <code>locale</code>, battery, network type.</li>
+      <li>Filtr w Issue list: <code>device.model:"SM-S928B"</code> albo <code>os.name:Android os.version:&gt;=15</code>.</li>
+      <li>Cross-issue analiza w Explore (Discover): aggregate by <code>device.model</code> → zobacz które urządzenia dominują w konkretnym wyjątku.</li>
+      <li>Jeśli wysyłasz per-OEM hotfix, alert scoped <code>device.manufacturer:samsung</code> może go uruchomić.</li>
     </ul>
+    <details>
+      <summary>Best practice: nie duplikuj auto-tagów</summary>
+      <p>Sentry Android SDK <em>już</em> ustawia <code>device.model</code>, <code>device.manufacturer</code>, <code>os.name</code>, <code>os.version</code>, <code>app.version</code>. Ręczny <code>options.setTag("device_model", Build.MODEL)</code> = duplikacja + quota burn + risk różnicy w wartości.</p>
+      <p>Twoje tagi powinny dodawać wymiary których SDK nie zna: <code>policyType</code>, <code>userTier</code>, <code>experimentVariant</code>. Kardynalność ≤ ~100 unikalnych wartości na klucz.</p>
+    </details>
   </section>
 
   <section class="slide" id="slide-48">
@@ -1258,7 +1336,7 @@ sentry proguard upload --org devpowers \
   <section class="slide section" id="slide-51">
     <span class="timecode">16:40 – 16:55</span>
     <h1>1.7 AI w Sentry — Seer, MCP, dev CLI</h1>
-    <p class="lede">Short module by design. The point is to make AI a <em>supplement</em>, not the primary workflow — survey put Sentry-AI interest at ~3.3/5.</p>
+    <p class="lede">Krótki moduł by design. Celem jest pokazać AI jako <em>dodatek</em>, nie główny workflow — ankieta dała Sentry-AI interest ~3.3/5.</p>
   </section>
 
   <section class="slide" id="slide-52">
@@ -1292,7 +1370,7 @@ sentry proguard upload --org devpowers \
   <section class="slide section" id="slide-54">
     <span class="timecode">16:55 – 17:00</span>
     <h1>1.8 Checklista wdrożeniowa</h1>
-    <p class="lede">Walk out with five concrete actions per participant, mapped to their existing Jira/Bitbucket workflow.</p>
+    <p class="lede">Wyjdź z pięcioma konkretnymi akcjami na uczestnika, zmapowanymi na istniejący workflow Jira/Bitbucket.</p>
   </section>
 
   <section class="slide" id="slide-55">
