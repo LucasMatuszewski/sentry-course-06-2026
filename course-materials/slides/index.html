@@ -986,6 +986,44 @@ sentry-cli releases finalize "$REL"</pre>
       <li><strong>Coolify webhook URL</strong> — semi-secret; lives in the same GitHub <code>training</code> environment.</li>
       <li>Full matrix &amp; copy-paste commands: <code>course-materials/guides/setup-tokens-and-deploy.md</code>.</li>
     </ul>
+    <details open>
+      <summary>📺 Demo na żywo: ustawiamy <code>SENTRY_AUTH_TOKEN</code> i pokazujemy różnicę</summary>
+      <p><strong>Krok 0 — pokaż "źle" przed (1 min):</strong></p>
+      <ul>
+        <li>Otwórz error w Angular Issues z poprzedniego release'u (jeszcze bez source maps).</li>
+        <li>Zwróć uwagę: stack frames z nazwami typu <code>chunk-AB12.js:line:42</code>, anonimowe funkcje. <em>Nieczytelne</em>.</li>
+      </ul>
+      <p><strong>Krok 1 — utwórz token w Sentry UI (2 min):</strong></p>
+      <ol>
+        <li>Otwórz <a href="https://devpowers.sentry.io/settings/auth-tokens/" target="_blank" rel="noopener">devpowers.sentry.io/settings/auth-tokens/</a></li>
+        <li>Kliknij <strong>Create New Token</strong></li>
+        <li>Name: <code>GitHub Actions — sentry-course-06-2026</code></li>
+        <li>Scopes: zaznacz tylko <code>org:ci</code> (Source Map Upload, Release Creation, Code Mappings)</li>
+        <li>Kliknij <strong>Create Token</strong> → <strong>skopiuj token</strong> (zaczyna się od <code>sntrys_</code>, pokazany <em>jeden raz</em>)</li>
+      </ol>
+      <p><strong>Krok 2 — wklej do GitHub (30 sek):</strong></p>
+      <pre>gh secret set SENTRY_AUTH_TOKEN --env training `
+  --repo LucasMatuszewski/sentry-course-06-2026
+# wklej token (Ctrl+V), Enter</pre>
+      <p>Albo UI: <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/settings/environments/training/edit" target="_blank" rel="noopener">github.com/.../environments/training/edit</a> → Add secret.</p>
+      <p><strong>Krok 3 — odpal release (30 sek):</strong></p>
+      <pre>gh workflow run release.yml --ref main `
+  --repo LucasMatuszewski/sentry-course-06-2026</pre>
+      <p>Albo: zrób trywialny commit (np. literówka w title) i push.</p>
+      <p><strong>Krok 4 — wykorzystaj czas buildu (~10 min):</strong></p>
+      <ul>
+        <li>Kontynuuj treść modułu: source maps theory, debug IDs, R8/ProGuard, dSYM (slide 28+).</li>
+        <li>Co minutę zerknij na <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/actions" target="_blank" rel="noopener">github.com/.../actions</a> — pokaż uczestnikom, że build trwa, ale tymczasem mówimy teorię.</li>
+      </ul>
+      <p><strong>Krok 5 — pokaż "dobrze" po (3 min):</strong></p>
+      <ul>
+        <li>Po zielonym Release workflow → odśwież Coolify (deploy job sam to robi via webhook).</li>
+        <li>Wejdź na live URL, kliknij <strong>Wymuś błąd 500</strong> → nowy error w Sentry.</li>
+        <li>Otwórz event → <em>teraz</em> stack jest pełny, z plikami <code>.ts</code> i numerami linii.</li>
+        <li>Po stronie Spring: ten sam exception ma teraz source context (kod wokół frame'u widoczny w issue).</li>
+      </ul>
+      <p>Pełny token walkthrough z PowerShell: <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/course-materials/guides/setup-tokens-and-deploy.md" target="_blank" rel="noopener">setup-tokens-and-deploy.md</a>.</p>
+    </details>
   </section>
 
   <section class="slide" id="slide-32">
@@ -1002,42 +1040,53 @@ sentry-cli releases finalize "$REL"</pre>
 
   <section class="slide trainer" id="slide-33">
     <span class="timecode">13:30 – 14:30</span>
-    <h2>Trainer panel · Live deploy demo</h2>
-    <h1>Push a one-liner, watch it land in prod</h1>
+    <h2>Trainer panel · Demo na żywo: token → push → readable stack</h2>
+    <h1>Pokaż "źle" zanim, "dobrze" potem</h1>
     <div class="panel-grid">
       <div class="card do">
-        <h3>Trigger</h3>
-        <pre class="bash"># Tiny demo change
+        <h3>Step 1 — token</h3>
+        <p>Utwórz token (1 raz na życie organizacji):</p>
+        <a href="https://devpowers.sentry.io/settings/auth-tokens/" target="_blank" rel="noopener">Sentry → Settings → Auth Tokens</a>
+        <p>Scope <code>org:ci</code>, copy, paste:</p>
+        <pre class="bash">gh secret set SENTRY_AUTH_TOKEN `
+  --env training `
+  --repo LucasMatuszewski/sentry-course-06-2026</pre>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/settings/environments/training/edit" target="_blank" rel="noopener">UI: GH environment "training"</a>
+      </div>
+      <div class="card do">
+        <h3>Step 2 — push + watch</h3>
+        <pre class="bash"># Trywialny commit:
 cd apps/angular
 sed -i 's/PolicyLab/PolicyLab v2/' src/app/app.ts
 git commit -am "demo: title bump"
-git push</pre>
-        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/actions" target="_blank" rel="noopener">Watch the workflow</a>
-      </div>
-      <div class="card do">
-        <h3>Observe in Sentry</h3>
-        <a href="https://devpowers.sentry.io/releases/?project=4511646810570832" target="_blank" rel="noopener">Angular releases — see new entry</a>
-        <a href="https://devpowers.sentry.io/releases/?project=4511644672983120" target="_blank" rel="noopener">Spring releases — see source bundle attached</a>
-        <p>After deploy: open the public Coolify URL, click "Wymuś błąd 500" → issue appears tagged with the new release.</p>
+git push
+
+# Albo bez commitu, re-run workflow:
+gh workflow run release.yml --ref main</pre>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/actions" target="_blank" rel="noopener">Actions — obserwuj build (~10 min)</a>
       </div>
       <div class="card say">
-        <h3>Say</h3>
+        <h3>Step 3 — kontynuuj content podczas buildu</h3>
         <ul>
-          <li>"GitHub runs the build because it has the secrets and the CPU. Coolify only pulls."</li>
-          <li>"<code>org:ci</code> is the only scope we trust for unattended CI. The user CLI uses a different token entirely."</li>
-          <li>"The same commit SHA is the release name in Sentry, the image tag in ghcr, and what Coolify pulls — that's how 'suspect commits' works."</li>
+          <li>Naucz source maps theory + R8/ProGuard glossary (slide 28).</li>
+          <li>Co ~2 min zerknij na Actions — pokaż im progress.</li>
+          <li>"GitHub buduje, bo ma secrets i CPU. Coolify tylko pulluje."</li>
+          <li>"<code>org:ci</code> — to jedyny scope godny zaufania w unattended CI."</li>
+          <li>"Ten sam SHA = release w Sentry = tag obrazu = co pulluje Coolify. Dlatego suspect commits działają."</li>
         </ul>
       </div>
       <div class="card check">
-        <h3>Check + kod do pokazania</h3>
+        <h3>Step 4 — pokaż "dobrze" po deploy</h3>
         <ul>
-          <li>Krok <em>deploy</em> w workflow: "Healthy after Xs."</li>
-          <li>Sentry release page: deploy marker widoczny.</li>
-          <li>Jeden trace w Sentry: Angular → Spring spans w jednym waterfall.</li>
+          <li>Deploy job zielony? Coolify już zaciągnął nowe obrazy.</li>
+          <li>Otwórz live URL → kliknij <strong>Wymuś błąd 500</strong>.</li>
+          <li>Otwórz <a href="https://devpowers.sentry.io/issues/?project=4511646810570832&environment=training" target="_blank" rel="noopener">Angular Issues</a> — nowy event, stack <em>czytelny</em>: <code>.ts</code> files + linie.</li>
+          <li>Otwórz <a href="https://devpowers.sentry.io/issues/?project=4511644672983120&environment=training" target="_blank" rel="noopener">Spring Issues</a> — source context wokół failing frame.</li>
         </ul>
-        <p>Otwórz:</p>
-        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/compose.yaml" target="_blank" rel="noopener">compose.yaml (deployable stack)</a>
-        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/nginx.conf#L19-L29" target="_blank" rel="noopener">nginx /api proxy (trace headers przelatują)</a>
+        <p>Kod do pokazania:</p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/compose.yaml" target="_blank" rel="noopener">compose.yaml</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/apps/angular/nginx.conf#L19-L29" target="_blank" rel="noopener">nginx /api proxy</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/blob/main/.github/workflows/release.yml" target="_blank" rel="noopener">release.yml (gdzie source maps lecą)</a>
       </div>
     </div>
   </section>
