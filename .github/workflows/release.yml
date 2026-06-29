@@ -175,10 +175,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build bootJar (Sentry Gradle plugin uploads source bundle if token set)
         working-directory: apps/api-spring
-        # -PreleaseName flows through build.gradle.kts -> project.version ->
-        # Sentry Gradle plugin source-bundle tag AND -> Spring Boot
-        # build-info.properties -> runtime auto-detected release. One git
-        # identifier, three usages.
+        # -PreleaseName flows into build.gradle.kts -> project.version ->
+        # Sentry Gradle plugin source-bundle tag. (Runtime release comes
+        # from the Docker image's ENV SENTRY_RELEASE, baked in by the
+        # Dockerfile build-arg below, so events at runtime carry the same
+        # identifier the source bundle was tagged with.)
         run: ./gradlew bootJar --no-daemon -x test -PreleaseName=${{ env.SENTRY_RELEASE }}
       - name: Create Sentry release (Spring)
         if: env.SENTRY_AUTH_TOKEN != ''
@@ -208,6 +209,13 @@ jobs:
           file: apps/api-spring/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          # SENTRY_RELEASE flows through the Dockerfile build arg into
+          # both phases (build: -PreleaseName -> project.version -> source
+          # bundle tag) AND into the runtime image as an ENV (read by the
+          # Spring Sentry starter via application.properties placeholder).
+          # Single SHA, three usages, all auto-synced per commit.
+          build-args: |
+            SENTRY_RELEASE=${{ env.SENTRY_RELEASE }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-api:${{ needs.meta.outputs.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.REPO_SLUG }}-api:main

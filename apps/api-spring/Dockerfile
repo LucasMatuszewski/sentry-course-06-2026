@@ -6,8 +6,17 @@ COPY gradlew gradlew
 COPY settings.gradle.kts build.gradle.kts gradle.properties ./
 RUN chmod +x gradlew && ./gradlew --no-daemon dependencies
 
+# Release identifier flows from the GitHub Actions release.yml workflow
+# (SENTRY_RELEASE=api-spring@<short-sha>) into the build phase via
+# --build-arg SENTRY_RELEASE=... Then -PreleaseName= passes it to Gradle,
+# which sets project.version. The Sentry Gradle plugin uses that same
+# project.version as the release tag when uploading the source bundle.
+# Default keeps local docker builds working without a sha.
+ARG SENTRY_RELEASE=api-spring@dev
+ENV SENTRY_RELEASE=${SENTRY_RELEASE}
+
 COPY src src
-RUN ./gradlew --no-daemon bootJar
+RUN ./gradlew --no-daemon bootJar -PreleaseName=${SENTRY_RELEASE}
 
 FROM eclipse-temurin:17-jre-noble
 
@@ -21,6 +30,12 @@ RUN apt-get update \
  && useradd  --system --gid policylab policylab
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar
+
+# Carry the release identifier into the runtime image so the Spring
+# Sentry starter reads it from the OS env at startup. application.properties
+# already has sentry.release=${SENTRY_RELEASE:} which resolves this.
+ARG SENTRY_RELEASE=api-spring@dev
+ENV SENTRY_RELEASE=${SENTRY_RELEASE}
 
 USER policylab
 EXPOSE 8080
