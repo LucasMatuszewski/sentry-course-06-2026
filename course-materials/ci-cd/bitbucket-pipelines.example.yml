@@ -28,10 +28,18 @@ pipelines:
             - export SENTRY_RELEASE="policylab-web@${BITBUCKET_COMMIT}"
             - npm ci
             - npm test -- --watch=false
-            - npm run build -- --configuration production
+            - |
+              # The build tool, not the Sentry SDK, creates source maps.
+              # In this training example we assume the production build writes
+              # JS bundles and matching .map files into dist/policylab-web.
+              npm run build -- --configuration production
             - npx --yes @sentry/cli@latest releases new "$SENTRY_RELEASE"
             - npx --yes @sentry/cli@latest releases set-commits "$SENTRY_RELEASE" --auto --ignore-missing
-            - npx --yes @sentry/cli@latest sourcemaps inject dist/policylab-web
+            - |
+              # Sentry CLI does not search a universal default folder for maps.
+              # It processes the explicit directory argument below.
+              # Here that directory is the build output from this same step.
+              npx --yes @sentry/cli@latest sourcemaps inject dist/policylab-web
             - npx --yes @sentry/cli@latest sourcemaps upload --org "$SENTRY_ORG" --project "$SENTRY_PROJECT" --release "$SENTRY_RELEASE" dist/policylab-web
             - npx --yes @sentry/cli@latest releases finalize "$SENTRY_RELEASE"
           artifacts:
