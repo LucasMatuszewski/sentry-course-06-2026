@@ -42,7 +42,24 @@ export class App {
           this.status.set(
             `Wycena ${quote.quoteId}: ${quote.annualPremium} ${quote.currency} (${quote.riskBand})`,
           ),
-        error: (err) => this.status.set(`Błąd: ${err?.status ?? err?.message ?? 'unknown'}`),
+        error: (err) => {
+          // Capture every API failure as a Sentry event so the trainer can
+          // demo "FE error + linked BE issue + shared trace" without
+          // relying on the Spring SDK doing the right thing. The error
+          // carries the same sentry-trace header the request was tagged
+          // with, so this event joins the same trace as the Spring event.
+          Sentry.captureException(err, {
+            tags: { 'demo.scenario': scenario, 'api.endpoint': '/api/quotes' },
+            contexts: {
+              quote_request: {
+                scenario,
+                status: err?.status,
+                message: err?.message,
+              },
+            },
+          });
+          this.status.set(`Błąd: ${err?.status ?? err?.message ?? 'unknown'}`);
+        },
       });
   }
 
