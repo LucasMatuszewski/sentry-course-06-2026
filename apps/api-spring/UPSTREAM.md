@@ -44,8 +44,13 @@ The upstream sample enables default PII and request-body capture for SDK system 
 The upstream build consumes local Sentry modules, so it is not directly reusable as a standalone project. This project instead resolves released artifacts from Maven Central:
 
 - `org.springframework.boot` `3.5.0`
-- `io.sentry:sentry-spring-boot-starter-jakarta` `8.46.0`
-- `io.sentry:sentry-logback` `8.46.0`
+- `io.sentry:sentry-spring-boot-starter-jakarta` `8.11.1`
+- `io.sentry:sentry-logback` `8.11.1`
+- `io.sentry.jvm.gradle` plugin `5.5.0` (bundles sentry-core 8.11.1)
+
+All Sentry artifacts on the classpath must agree on a single version.
+The Gradle plugin force-injects its bundled `sentry-core`, so the
+framework integration starters are pinned to the same version.
 
 ### Note on Spring Boot version
 

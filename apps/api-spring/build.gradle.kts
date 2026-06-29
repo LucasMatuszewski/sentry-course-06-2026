@@ -33,8 +33,15 @@ dependencies {
     // tracing, breadcrumbs, and the sentry.* property binding.
     // Maven coordinates: io.sentry:sentry-spring-boot-starter-jakarta
     // (suffix -jakarta on the artifact, NOT infix -jakarta-starter).
-    implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.46.0")
-    implementation("io.sentry:sentry-logback:8.46.0")
+    //
+    // Version 8.11.1 is pinned to match the bundled sentry-core that the
+    // io.sentry.jvm.gradle:5.5.0 plugin injects on the classpath. A higher
+    // version of sentry-spring-boot-starter-jakarta references newer
+    // SentryOptions inner classes (e.g. Metrics.BeforeSendMetricCallback)
+    // that do not exist in sentry-core 8.11.x, which makes Spring's
+    // condition evaluation fail with ClassNotFoundException at boot.
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.11.1")
+    implementation("io.sentry:sentry-logback:8.11.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
