@@ -1,0 +1,37 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.sentryclirc
+sentry.properties
+local.properties
+*.pem
+*.key
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+coverage/
+*.map
+
+# Java / Gradle
+.gradle/
+build/
+**/build/
+out/
+
+# Android / Apple / editors
+.idea/
+*.iml
+.cxx/
+DerivedData/
+xcuserdata/
+.build/
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local worktrees and temporary research
+.worktrees/
+.tmp/
