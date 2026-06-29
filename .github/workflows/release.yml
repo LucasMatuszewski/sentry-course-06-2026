@@ -1,0 +1,105 @@
+name: Release
+
+# Runs only after a merge to main or a manual dispatch. Uses environment-scoped
+# secrets so SENTRY_AUTH_TOKEN never leaks into pull-request workflows.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: "Which apps to release"
+        required: false
+        default: "angular,spring"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SENTRY_ORG: devpowers
+
+jobs:
+  angular-release:
+    name: Angular release & source-map upload
+    runs-on: ubuntu-latest
+    environment: training
+    if: github.event_name == 'push' || contains(github.event.inputs.apps, 'angular')
+    defaults:
+      run:
+        working-directory: apps/angular
+    env:
+      SENTRY_PROJECT: javascript-angular
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Compute release name
+        id: ver
+        shell: bash
+        run: echo "release=angular@$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+      - name: Production build with source maps
+        env:
+          SENTRY_RELEASE: ${{ steps.ver.outputs.release }}
+        run: pnpm exec ng build --configuration production --source-map
+      - name: Create Sentry release and associate commits
+        uses: getsentry/action-release@v1
+        with:
+          environment: training
+          version: ${{ steps.ver.outputs.release }}
+          sourcemaps: apps/angular/dist
+          projects: ${{ env.SENTRY_PROJECT }}
+          ignore_missing: true
+          ignore_empty: true
+      - name: Strip .map files from the deployable bundle
+        run: find dist -name '*.map' -delete
+
+  spring-release:
+    name: Spring release & source context upload
+    runs-on: ubuntu-latest
+    environment: training
+    if: github.event_name == 'push' || contains(github.event.inputs.apps, 'spring')
+    defaults:
+      run:
+        working-directory: apps/api-spring
+    env:
+      SENTRY_PROJECT: java-spring-boot
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compute release name
+        id: ver
+        shell: bash
+        run: echo "release=api-spring@$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Build bootJar (Sentry Gradle plugin uploads source bundle)
+        env:
+          SENTRY_RELEASE: ${{ steps.ver.outputs.release }}
+        run: ./gradlew bootJar --no-daemon -Dsentry.release=${{ steps.ver.outputs.release }}
+      - name: Create Sentry release and associate commits (Spring)
+        uses: getsentry/action-release@v1
+        with:
+          environment: training
+          version: ${{ steps.ver.outputs.release }}
+          projects: ${{ env.SENTRY_PROJECT }}
+          ignore_missing: true
+          ignore_empty: true
