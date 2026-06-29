@@ -18,6 +18,25 @@ name: Release
 on:
   push:
     branches: [main]
+    # Doc / slide / config changes do not warrant a 10+ min multi-arch
+    # rebuild. To force a release after a doc-only change, use
+    # `gh workflow run release.yml --ref main`.
+    paths-ignore:
+      - "course-materials/**"
+      - "docs/**"
+      - "**/*.md"
+      - "**/*.MD"
+      - "**/UPSTREAM.md"
+      - "**/CODE_REVIEW.md"
+      - ".gitignore"
+      - ".gitattributes"
+      - "mise.toml"
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "LICENSE"
+      - "LICENSE.*"
+      - ".env.example"
+      - "scripts/**"
   workflow_dispatch:
     inputs:
       deploy:
