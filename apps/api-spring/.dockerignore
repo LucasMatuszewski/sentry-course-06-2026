@@ -1,0 +1,7 @@
+.gradle
+build
+docs
+.git
+.gitignore
+README.md
+UPSTREAM.md
