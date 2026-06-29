@@ -1,37 +1,49 @@
-# Course materials
+# Materiały szkoleniowe
 
-Materials are primarily English because Sentry documentation and UI terminology are English. PolicyLab application screens may use Polish synthetic content.
+Kurs jednodniowy **Sentry dla developerów** — prowadzony **dla Sages** przez Łukasza Matuszewskiego ([devpowers.com](https://devpowers.com)). Data: **2026-06-29**, 09:00–17:00 Europe/Warsaw.
 
-## Learning path
+Slajdy i narracja są po **polsku**. Słownictwo Sentry, nazwy SDK i polecenia CLI pozostają po angielsku — tak jak w oficjalnej dokumentacji. Polska UI w PolicyLab ilustruje, że nazwy biznesowe i komunikaty mogą być w dowolnym języku, oddzielnie od telemetrii.
 
-1. [Survey results](survey-results.md)
-2. [One-day agenda](course-agenda-1-day.md)
-3. [Onboarding walkthrough](sentry-onboarding-first-steps/sentry-onboarding.md)
-4. [Glossary](glossary.md)
-5. Module and setup guides in `guides/`
-6. Hands-on scenarios in `exercises/`
-7. Interactive trainer materials in `slides/`
+## Ścieżka uczenia
 
-Reference controls:
+1. **Przed kursem (trener)** — [Wyniki ankiety](survey-results.md) · [Program szkolenia (Polski)](Course-agenda-program-szkolenia-Sentry_2026.md) · [Skrócona agenda 1-dniowa](course-agenda-1-day.md)
+2. **Onboarding** — [Pierwsze kroki w Sentry (z zrzutami ekranu)](sentry-onboarding-first-steps/sentry-onboarding.md) · [Issues tour — zwiedzanie panelu](sentry-onboarding-issues-tour/issues-tour.md)
+3. **Słownik** — [glossary.md](glossary.md) (DSN, fingerprint, debug ID, dSYM, R8/ProGuard, source map, source context i inne pojęcia używane w narracji)
+4. **Moduły** w katalogu [`guides/`](guides/) — pełne wyjaśnienia każdej sekcji programu:
+   - [01 — Fundamentals + developer observability](guides/01-fundamentals.md)
+   - [02 — Projects, environments, releases, SDK config](guides/02-projects-environments-config.md)
+   - [03 — Triage, grouping, fingerprinting](guides/03-triage-grouping.md)
+   - [04 — Releases, source maps, R8/ProGuard, dSYM, CI/CD](guides/04-releases-source-artifacts-ci.md)
+   - [05 — Tracing, logs, Replay, sampling](guides/05-tracing-logs-replay-sampling.md)
+   - [06 — Alerts, trends, Jira/Bitbucket workflow](guides/06-alerts-trends-integrations.md)
+   - [07 — Privacy, data scrubbing, regulated env](guides/07-privacy-data-scrubbing.md)
+   - [08 — Mobile/desktop observability](guides/08-mobile-desktop.md)
+   - [09 — Seer, MCP, dev/agent CLI (krótka referencja)](guides/09-seer-mcp.md)
+   - [Best practices (cross-platform)](guides/best-practices.md)
+   - [Setup — Angular](guides/setup-angular.md) · [Setup — Spring Boot](guides/setup-spring.md) · [Setup — Android](guides/setup-android.md) · [Setup — iOS](guides/setup-ios.md)
+   - [Tokeny + deploy (Coolify, GitHub Actions)](guides/setup-tokens-and-deploy.md)
+   - [Coolify bootstrap UI — checklist 3 minut](guides/coolify-bootstrap.md)
+   - [Trainer runbook](guides/trainer-runbook.md)
+5. **Ćwiczenia praktyczne** w [`exercises/`](exercises/) — 8 zadań z timeboxami, podpowiedziami i kryteriami sukcesu
+6. **CI/CD examples** w [`ci-cd/`](ci-cd/) — Bitbucket Pipelines i Jenkinsfile jako starting-points (annotated, wymagają ~30 min dostosowania per pipeline)
+7. **Slajdy interaktywne** w [`slides/`](slides/) — pojedynczy offline HTML, 58 slajdów, Warsaw clock + reminder banners + trainer panels per moduł
 
-- [Source validation register](source-validation.md)
-- [Manual trainer review gate](manual-review-checklist.md)
+## Kontrole referencyjne
+
+- [Source validation register](source-validation.md) — z czego korzystaliśmy do walidacji treści
+- [Manual trainer review gate](manual-review-checklist.md) — checklista zanim slajdy uznane za final
 - [Tokens, secrets and Coolify deploy walkthrough](guides/setup-tokens-and-deploy.md)
 - [Coolify bootstrap — 3-minute UI checklist](guides/coolify-bootstrap.md)
 
-The original two-day offer remains available as `Course-agenda-program-szkolenia-Sentry_2026.md` and PDF. The one-day agenda is the delivery source of truth.
+Oryginalna dwudniowa oferta dostępna jako [`Course-agenda-program-szkolenia-Sentry_2026.md`](Course-agenda-program-szkolenia-Sentry_2026.md) i PDF. Skrócona agenda 1-dniowa jest źródłem prawdy dla dostarczenia kursu.
 
-## Participant paths
+## Ścieżki uczestnika
 
-- **Zero install:** use shared DevPowers Sentry projects and prepared events.
-- **Core local path:** run Angular and Spring Boot.
-- **Mobile path:** use Android Studio with a device or the shared Google AI Studio application.
-- **iOS path:** read the Swift reference and run it later on macOS with Xcode.
+- **Zero install** — używaj wspólnych projektów Sentry w organizacji DevPowers i przygotowanych eventów.
+- **Core local path** — uruchom lokalnie Angular i Spring Boot.
+- **Mobile path** — Android Studio z urządzeniem albo wspólna aplikacja Google AI Studio.
+- **iOS path** — przeczytaj referencyjny Swift sample; uruchom później na macOS z Xcode.
 
-## Trainer path
+## Polityka źródeł
 
-Use `guides/trainer-runbook.md`, verify prepared releases/events, and open the slides before the Teams call. Slides use Europe/Warsaw time for reminders.
-
-## Source policy
-
-Technical guidance links to current official sources and states when it was validated. Baseline validation date: **2026-06-29**. Live documentation and official repository state take precedence over cached articles and model memory.
+Wszystkie zalecenia techniczne mają linki do aktualnej oficjalnej dokumentacji i datę walidacji. Baseline validation date: **2026-06-29**. Żywa dokumentacja i aktualny stan oficjalnych repozytoriów ma pierwszeństwo nad cache'owanymi artykułami i pamięcią modeli.

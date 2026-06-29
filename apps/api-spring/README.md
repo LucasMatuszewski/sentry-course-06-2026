@@ -42,7 +42,7 @@ curl -X POST http://localhost:8080/api/quotes \
     "vehicleType": "car",
     "manufactureYear": 2022,
     "coverage": "comprehensive",
-    "postalCode": "SW1A 1AA",
+    "postalCode": "00-001",
     "driverAge": 38
   }'
 ```
@@ -53,7 +53,7 @@ Example response:
 {
   "quoteId": "5df04309-03ac-4bb0-9cce-ae57f128da1d",
   "annualPremium": 675.00,
-  "currency": "GBP",
+  "currency": "PLN",
   "riskBand": "MEDIUM"
 }
 ```
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8080/api/quotes \
     "vehicleType": "car",
     "manufactureYear": 2022,
     "coverage": "comprehensive",
-    "postalCode": "SW1A 1AA",
+    "postalCode": "00-001",
     "driverAge": 38
   }'
 ```

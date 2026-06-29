@@ -1,59 +1,72 @@
-# Angular
+# PolicyLab — Angular client
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.29.
+Główna ścieżka uczestnika kursu Sentry. Angular 20 + TypeScript + pnpm + `@sentry/angular`. Wysyła zapytania o wycenę do `/api/quotes` (Spring Boot — sąsiednia aplikacja).
 
-## Development server
+## Kluczowe demonstracje
 
-To start a local development server, run:
+| Funkcja Sentry | Gdzie w kodzie |
+|---|---|
+| `Sentry.init` przed bootstrapem aplikacji | [`src/main.ts`](src/main.ts) |
+| `ErrorHandler` + `TraceService` (Angular DI) | [`src/app/app.config.ts`](src/app/app.config.ts) |
+| Browser tracing + propagation do `/api/*` | [`src/main.ts`](src/main.ts) |
+| Session Replay z `maskAllText: true` + `blockAllMedia: true` | [`src/main.ts`](src/main.ts) |
+| Structured logs (`Sentry.logger.info`) | [`src/app/app.ts`](src/app/app.ts) |
+| Test error button + quote API client | [`src/app/app.ts`](src/app/app.ts), [`src/app/quote-api.service.ts`](src/app/quote-api.service.ts) |
 
-```bash
-ng serve
+## Source maps
+
+Buildy produkcyjne generują source maps (`ng build --configuration production --source-map`). W CI pipeline (`.github/workflows/release.yml`) source maps są uploadowane do Sentry przez `getsentry/action-release`, a następnie `.map` files są usuwane z deployable bundle (nginx zwraca 404 dla `*.map` przez `nginx.conf`).
+
+## Uruchom lokalnie
+
+```powershell
+# Pierwsze uruchomienie
+pnpm install
+
+# Dev server (http://localhost:4200)
+pnpm exec ng serve
+
+# Unit tests (4 specs)
+pnpm exec ng test --watch=false --browsers=ChromeHeadless
+
+# Build produkcyjny z source maps
+pnpm exec ng build --configuration production --source-map
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+W trybie dev Angular forwarduje `/api/*` do backendu na porcie 8080 (skonfigurowane w `angular.json` lub serwerem proxy podczas demo). Backend uruchom z `apps/api-spring`.
 
-## Code scaffolding
+## Konfiguracja Sentry
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+DSN jest aktualnie wpisany inline w `src/main.ts` (świadomie — to materiał edukacyjny pokazujący wzorzec, nie produkcyjna aplikacja gdzie DSN miałby być w `assets/config.json` fetched at bootstrap). DSN celuje w projekt `devpowers/javascript-angular`.
 
-```bash
-ng generate component component-name
+Konfiguracja:
+
+| Opcja | Wartość treningowa | Co należy zmienić w prod |
+|---|---|---|
+| `environment` | `training` | `production`/`staging` |
+| `release` | `angular@0.1.0` (kompilacja-build-arg w Docker) | unikalny SHA commitu |
+| `sendDefaultPii` | `false` | `false` (utrzymać dla EU/regulowanych branż) |
+| `tracesSampleRate` | `1.0` | `0.05`–`0.20` zależnie od ruchu |
+| `replaysSessionSampleRate` | `0.1` | `0.01`–`0.05` |
+| `replaysOnErrorSampleRate` | `1.0` | `1.0` (zachowaj — łapie sesje przy błędzie) |
+| `enableLogs` | `true` | `true` |
+
+## Docker
+
+```powershell
+docker build -t policylab-web `
+  --build-arg SENTRY_RELEASE=angular@local `
+  -f apps/angular/Dockerfile apps/angular
+docker run --rm -p 8080:80 policylab-web
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Multi-stage Dockerfile: `node:24.15-alpine` → `pnpm install` → `ng build --source-map` → uploaduje source maps do Sentry (jeśli `SENTRY_AUTH_TOKEN` build-arg ustawiony) → kopiuje statyki do `nginx:1.27-alpine` z `nginx.conf` który reverse-proxy'uje `/api/` do kontenera `api:8080`.
 
-```bash
-ng generate --help
-```
+## Powiązane materiały kursu
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- [Przewodnik Angular SDK](../../course-materials/guides/setup-angular.md)
+- [Module 1.5: Tracing, logs, Replay](../../course-materials/guides/05-tracing-logs-replay-sampling.md)
+- [Module 1.4: Releases + source maps](../../course-materials/guides/04-releases-source-artifacts-ci.md)
+- [Module 1.7: Privacy & data scrubbing](../../course-materials/guides/07-privacy-data-scrubbing.md)
+- [Ćwiczenie 03: Custom context bez PII](../../course-materials/exercises/03-safe-context-privacy.md)
+- [Ćwiczenie 05: Distributed trace](../../course-materials/exercises/05-distributed-trace.md)

@@ -184,6 +184,54 @@
     margin-bottom: 3px;
     word-break: break-all;
   }
+  .slide details {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin: 6px 0;
+  }
+  .slide details > summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: clamp(13px, 1vw, 18px);
+    color: var(--accent-2);
+    font-weight: 600;
+    user-select: none;
+    padding: 4px 0;
+  }
+  .slide details > summary::before {
+    content: "▸ ";
+    display: inline-block;
+    transition: transform 0.15s;
+    color: var(--accent);
+  }
+  .slide details[open] > summary::before {
+    transform: rotate(90deg);
+  }
+  .slide details > summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .slide details > *:not(summary) {
+    margin-top: 6px;
+    font-size: clamp(13px, 0.95vw, 17px);
+    color: var(--fg);
+  }
+  .slide details pre {
+    background: rgba(0,0,0,0.45);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+    color: #fff7c2;
+    white-space: pre;
+    overflow: auto;
+    font-size: clamp(12px, 0.9vw, 16px);
+  }
+  .slide .glossary-term {
+    border-bottom: 1px dotted var(--accent-2);
+    cursor: help;
+  }
 
   /* Survey priority highlight */
   .pri {
@@ -308,7 +356,7 @@
     <div class="kicker">2026-06-29 · Europe/Warsaw · Teams</div>
     <h1>Sentry dla developerów</h1>
     <p class="lede">Jednodniowy warsztat praktyczny: od konfiguracji do diagnozy błędu. Angular + Spring Boot 4 + Android, z trasowaniem rozproszonym i playbookiem produkcyjnym.</p>
-    <div class="meta">Łukasz Matuszewski · Edukey · grupa DevPowers</div>
+    <div class="meta">Trener: Łukasz Matuszewski (<a href="https://devpowers.com" target="_blank" rel="noopener">devpowers.com</a>) · prowadzone dla Sages</div>
   </section>
 
   <!-- 1  How this deck guides the day -->
@@ -404,37 +452,65 @@
 
   <section class="slide trainer" id="slide-6">
     <span class="timecode">09:00 – 09:20</span>
-    <h2>Trainer panel · Preflight</h2>
-    <h1>Open these, run these, say these</h1>
+    <h2>Preflight · co otworzyć, co zainstalować</h2>
+    <h1>Dwa CLI o nazwie <code>sentry</code> — instalujemy oba</h1>
     <div class="panel-grid">
       <div class="card do">
-        <h3>Open in browser</h3>
-        <a href="https://devpowers.sentry.io/" target="_blank" rel="noopener">DevPowers org home</a>
-        <a href="https://devpowers.sentry.io/settings/teams/devpowers/members/" target="_blank" rel="noopener">Org members</a>
-        <a href="https://devpowers.sentry.io/settings/projects/" target="_blank" rel="noopener">Projects (4)</a>
-        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026" target="_blank" rel="noopener">Repo (clone before lunch)</a>
+        <h3>Otwórz w przeglądarce</h3>
+        <a href="https://devpowers.sentry.io/" target="_blank" rel="noopener">DevPowers org · sentry.io</a>
+        <a href="https://devpowers.sentry.io/settings/projects/" target="_blank" rel="noopener">Projekty (4 sztuki)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026" target="_blank" rel="noopener">Repo szkolenia (sklonujcie przed lunchem)</a>
+        <a href="https://cli.sentry.dev/" target="_blank" rel="noopener">cli.sentry.dev (dev/agent CLI)</a>
+        <a href="https://docs.sentry.io/cli/" target="_blank" rel="noopener">docs.sentry.io/cli (CI/CD)</a>
       </div>
       <div class="card do">
-        <h3>CLI sanity check</h3>
-        <pre class="bash">sentry --version
+        <h3>Instalacja — dev/agent CLI</h3>
+        <p>Nowe, interaktywne CLI dla developerów i agentów AI. Tego używamy dziś.</p>
+        <details open>
+          <summary>Windows / macOS / Linux — szczegóły</summary>
+          <pre>npm install -g @sentry-internal/cli
+# lub pobierz binarkę:
+#   https://github.com/getsentry/sentry-cli-rs/releases
+
+sentry auth login        # otwiera przeglądarkę
+sentry --version
 sentry whoami
-sentry org list
 sentry project list</pre>
+          <p>Uwaga: pakiet npm to <code>@sentry-internal/cli</code>, <em>nie</em> <code>@sentry/cli</code> (to jest stary CI tool).</p>
+        </details>
       </div>
       <div class="card say">
-        <h3>Say</h3>
+        <h3>Powiedz</h3>
         <ul>
-          <li>"You all have <strong>project-level write</strong> on the four workshop projects — not org admin."</li>
-          <li>"DSNs are <strong>public</strong>; an org auth token is <strong>not</strong>. Treat tokens like passwords."</li>
-          <li>"There are <strong>two</strong> CLIs both called <code>sentry</code> — we will cover both."</li>
+          <li>"Macie <strong>project-level write</strong> na czterech projektach kursowych — nie admin organizacji."</li>
+          <li>"DSN jest <strong>publiczny</strong>; token auth <strong>nie</strong>. Token traktujemy jak hasło."</li>
+          <li>"Są <strong>dwa</strong> CLI Sentry. Mylenie ich to częsty błąd — wyjaśnimy poniżej."</li>
         </ul>
+        <details>
+          <summary>Dwa CLI Sentry — porównanie</summary>
+          <p><strong>1. Dev/Agent CLI</strong> — <a href="https://cli.sentry.dev/" target="_blank" rel="noopener">cli.sentry.dev</a></p>
+          <ul>
+            <li>Komenda: <code>sentry ...</code></li>
+            <li>Do interaktywnej pracy przy biurku i z agentami AI.</li>
+            <li>Logowanie: <code>sentry auth login</code> (user token).</li>
+            <li>Szerokie uprawnienia — możliwości MCP, queries, mutations.</li>
+          </ul>
+          <p><strong>2. CI/CD CLI</strong> — <a href="https://docs.sentry.io/cli/" target="_blank" rel="noopener">docs.sentry.io/cli</a></p>
+          <ul>
+            <li>Komenda: <code>sentry-cli ...</code></li>
+            <li>Do pipeline'ów CI (GitHub Actions, Bitbucket, Jenkins).</li>
+            <li>Auth: org token o scope <code>org:ci</code> — Source Map Upload, Release Creation, Code Mappings. Nic więcej.</li>
+            <li>Bezpieczny do unattended automation.</li>
+          </ul>
+        </details>
       </div>
       <div class="card check">
-        <h3>Check</h3>
+        <h3>Sprawdź</h3>
         <ul>
-          <li>Everyone can reach <code>devpowers.sentry.io</code>.</li>
-          <li>Microphones working. Teams screen-share at 1920×1080.</li>
-          <li>Galaxy S24 mirrored + scrcpy fallback ready.</li>
+          <li>Każdy widzi <code>devpowers.sentry.io</code>.</li>
+          <li>Mikrofony OK. Teams screen-share 1920×1080.</li>
+          <li>Galaxy S24 mirrored + scrcpy fallback gotowy.</li>
+          <li><code>sentry whoami</code> zwraca login każdego uczestnika.</li>
         </ul>
       </div>
     </div>

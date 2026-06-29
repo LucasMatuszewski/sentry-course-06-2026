@@ -5,7 +5,7 @@
 The final presentation must:
 
 - work without a CDN or analytics;
-- use Europe/Warsaw time and the 2026-06-30 course date;
+- use Europe/Warsaw time and the 2026-06-29 course date;
 - show reminders at 11:00, 13:00, 13:30, and 15:30;
 - support snooze/dismiss and an optional sound/browser notification;
 - display the Sages survey link and a local QR asset at 13:30;

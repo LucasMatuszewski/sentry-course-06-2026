@@ -6,7 +6,7 @@ This standalone training project is based on the official Sentry Java repository
 - Pinned commit reviewed: `d8b6ce11cabd05be9a3f03a1d20fe247956d091d`
 - Sample path: `sentry-samples/sentry-samples-spring-boot-4`
 
-The pinned revision was available locally at `C:\Users\BiuroEdukey\DEV\COURSES\sentry-java-upstream` and its checked-out `HEAD` was verified before implementation.
+The pinned revision was checked out locally in a sibling research-only working tree (not committed as a submodule) and its `HEAD` was verified before implementation.
 
 ## Exact reuse scope
 

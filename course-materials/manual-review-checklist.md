@@ -4,7 +4,7 @@ Complete this checklist before treating the HTML slides as final.
 
 ## Accuracy
 
-- [ ] Sentry UI labels and navigation match the DevPowers organization on 2026-06-30.
+- [ ] Sentry UI labels and navigation match the DevPowers organization on 2026-06-29.
 - [ ] Angular, Spring Boot, Android, iOS, Gradle plugin, and CLI versions match the executable examples.
 - [ ] Every production recommendation is clearly separated from 100% training sampling/debug settings.
 - [ ] DSN and auth-token explanations are unambiguous.

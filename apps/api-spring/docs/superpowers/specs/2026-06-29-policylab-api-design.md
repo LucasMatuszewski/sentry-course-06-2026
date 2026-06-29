@@ -24,7 +24,7 @@ The application is stateless. Quote identifiers are generated UUIDs; no request 
   "vehicleType": "car",
   "manufactureYear": 2022,
   "coverage": "comprehensive",
-  "postalCode": "SW1A 1AA",
+  "postalCode": "00-001",
   "driverAge": 38
 }
 ```
@@ -35,7 +35,7 @@ It returns HTTP 200:
 {
   "quoteId": "5df04309-03ac-4bb0-9cce-ae57f128da1d",
   "annualPremium": 612.00,
-  "currency": "GBP",
+  "currency": "PLN",
   "riskBand": "MEDIUM"
 }
 ```

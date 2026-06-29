@@ -1,6 +1,6 @@
 # Trainer runbook
 
-Audience: five senior enterprise Java, Angular, and mobile developers. Date: 2026-06-30. All examples use fictional PolicyLab insurance data.
+Audience: five senior enterprise Java, Angular, and mobile developers. Date: 2026-06-29. All examples use fictional PolicyLab insurance data.
 
 ## Before the day
 
@@ -96,4 +96,4 @@ Search for **Issues**, **Traces**, **Logs**, **Replays**, **Releases**, **Alerts
 - [Android Developers: Run apps on a hardware device](https://developer.android.com/studio/run/device)
 - [Microsoft Support: Share content in Teams meetings](https://support.microsoft.com/en-us/office/share-content-in-microsoft-teams-meetings-fcc2bf59-aecd-4481-8f99-ce55dd836ce8)
 
-Validation: runbook dependencies and official references checked 2026-06-29; live tenant access, roles, seed IDs, and physical-device policy must be rechecked by the trainer before 09:00 on 2026-06-30.
+Validation: runbook dependencies and official references checked 2026-06-29; live tenant access, roles, seed IDs, and physical-device policy must be rechecked by the trainer before 09:00 on 2026-06-29.

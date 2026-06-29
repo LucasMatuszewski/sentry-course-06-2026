@@ -1,12 +1,15 @@
 # PolicyLab Android demo
 
-The primary Android source snapshot has not yet been added to this checkout. Until it is supplied, use the working shared application:
+Snapshot Androidowej demo aplikacji zaimportowany z Google AI Studio (commit `f374841`) i poddany code review (zobacz [`CODE_REVIEW.md`](CODE_REVIEW.md)). DSN pokazuje na `devpowers/android`.
 
-- [Open the PolicyLab/Sentry demo in Google AI Studio](https://ai.studio/apps/f3f80ee8-2b62-41a3-84bb-79d5f97f8558)
+Alternatywne ścieżki dla uczestników bez Android Studio:
 
-The shared app is the zero-install fallback. When its source archive is imported here, it must be reviewed against the current official Sentry Android sample and guidance before being treated as the repository source of truth.
+- [Open the PolicyLab/Sentry demo in Google AI Studio](https://ai.studio/apps/f3f80ee8-2b62-41a3-84bb-79d5f97f8558) — zero-install
+- scrcpy ([github.com/Genymobile/scrcpy](https://github.com/Genymobile/scrcpy)) jako cross-OS fallback do mirroringu fizycznego urządzenia trenera (Galaxy S24 Ultra).
 
-## Planned review gate
+Aplikacja jest po review zgodnie z poniższą listą — żadna pozycja nie jest TODO.
+
+## Review gate (PASSED)
 
 - No embedded `SENTRY_AUTH_TOKEN`, `.sentryclirc`, or private signing material
 - DSN and PolicyLab API URL configurable outside source

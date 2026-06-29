@@ -18,7 +18,7 @@ rule_code=AGE_BAND
 policyholder_name=Jamie Example
 email=jamie@example.invalid
 authorization=Bearer workshop-secret
-postal_code=SW1A 1AA
+postal_code=00-001
 premium_band=200_300
 request_body=<entire quote form>
 ```

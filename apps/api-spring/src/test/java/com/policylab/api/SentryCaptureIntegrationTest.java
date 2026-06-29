@@ -37,7 +37,7 @@ class SentryCaptureIntegrationTest {
         "vehicleType": "car",
         "manufactureYear": 2022,
         "coverage": "comprehensive",
-        "postalCode": "SW1A 1AA",
+        "postalCode": "00-001",
         "driverAge": 38
       }
       """;
