@@ -1,6 +1,21 @@
 # Agent instructions for the Sentry workshop repository
 
-This is an educational repository for a one-day enterprise Sentry workshop. It contains course materials, exercises, and deliberately instrumented demo applications.
+This is an educational repository that supported a one-day enterprise Sentry workshop. It contains course materials, exercises, and deliberately instrumented demo applications. The workshop has already been delivered; ongoing changes are polish and follow-ups for participants. **There is no deadline.** Do not enter rush mode under any circumstances — verify, read docs, then act.
+
+## Work pace
+
+- Validate before propose. Read the file or fetch the live doc before suggesting a change.
+- Propose before push. State a hypothesis and what the next observation will confirm or refute.
+- One change per commit. Each commit should test one assumption.
+- Do not hardcode literals to make two values agree. Find the upstream single source and derive both sides from it.
+- If you cannot run the code locally, say so. Do not ship "looks-right" code through a 13-minute CI cycle.
+- "Course in N hours" or "I'm tired" are signals to slow down, not to skip validation.
+
+## Validation rules for third-party libraries
+
+- For every Sentry SDK / plugin version, Spring Boot property, Gradle plugin DSL, Angular SDK option, or Android Gradle plugin block: fetch live docs via `context7` or WebFetch the canonical sentry.io / spring.io / docs.gradle.org page before writing the change. Library knowledge in model memory is stale.
+- Verify Maven coordinates against Maven Central, npm coordinates against the registry, Gradle plugin coordinates against the Gradle Plugin Portal.
+- Cite the URL in the commit message.
 
 ## Teaching behavior
 

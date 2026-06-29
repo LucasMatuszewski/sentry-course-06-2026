@@ -1,98 +1,78 @@
-# Pre-flight checklist for 2026-06-29 09:00
+# Operator notes — Sentry workshop repo
 
-Estimated time: 15–25 minutes of clicking + 10 minutes of waiting. Do it as
-soon as you wake up. Course starts at 09:00 Europe/Warsaw.
+The workshop was delivered on 2026-06-29. This file is the post-workshop maintenance reference: what is wired, what manual steps remain when re-running the demo from scratch, and how to verify each leg of the pipeline.
 
-## Status when you fell asleep
+There is no deadline associated with this document. Treat each step as something to do carefully, not quickly.
 
-- Repo pushed: `https://github.com/LucasMatuszewski/sentry-course-06-2026`
-- CI: green ✓  Release workflow: green ✓
-- Docker images pushed to GHCR: `*-api:main` and `*-web:main`
-- Slides, guides, exercises: complete and committed
-- Sentry projects: 4 (`android`, `apple-ios`, `java-spring-boot`,
-  `javascript-angular`) all with correct DSNs everywhere
+## Current wiring (verify each is true before changing anything)
 
-## What is left for you to do (you, not me — these need your hand)
+- Repo: <https://github.com/LucasMatuszewski/sentry-course-06-2026>
+- CI workflow: `.github/workflows/ci.yml` — PR validation, no secrets touched.
+- Release workflow: `.github/workflows/release.yml` — on push to main (paths-ignore for docs), builds multi-arch images, uploads source maps + JVM source bundle to Sentry, pushes images to GHCR, pings Coolify deploy webhook with `Authorization: Bearer ${COOLIFY_API_TOKEN}`.
+- Deployable images on GHCR: `ghcr.io/lucasmatuszewski/sentry-course-06-2026-api:main` and `…-web:main`. Public-visibility.
+- Coolify app `cglwptpktix94oaboo23jlwv` runs the compose stack on the Hetzner Ampere/arm64 host.
+- Sentry projects in DevPowers org: `android`, `apple-ios`, `java-spring-boot`, `javascript-angular`. All DSNs documented in `course-materials/sentry-onboarding-first-steps/sentry-onboarding.md` and `.env.example`.
 
-### 1. Flip GHCR packages to public (2 min, 2 clicks)
+## What needs to be set for the demo to be fully working
 
-Without this Coolify cannot pull the images.
+GitHub `training` environment secrets:
 
-- <https://github.com/users/LucasMatuszewski/packages/container/sentry-course-06-2026-api/settings> → Danger Zone → Change visibility → Public
-- <https://github.com/users/LucasMatuszewski/packages/container/sentry-course-06-2026-web/settings> → Danger Zone → Change visibility → Public
+| Name | Purpose | Source |
+|---|---|---|
+| `SENTRY_AUTH_TOKEN` | Source map / source bundle upload during CI build | Sentry → Settings → Auth Tokens, scope `org:ci` |
+| `COOLIFY_WEBHOOK_URL` | Where the release workflow POSTs to trigger redeploy | Coolify → app → Deploy Webhook (auth required) |
+| `COOLIFY_API_TOKEN` | Bearer token for the webhook above | Coolify → Profile → Keys & Tokens |
 
-### 2. Create the Coolify app (3 min)
+GitHub `training` environment variable:
 
-Follow `course-materials/guides/coolify-bootstrap.md`. Copy-paste env vars are in step 3.
+| Name | Purpose |
+|---|---|
+| `PUBLIC_URL` | Where the release workflow polls `/healthz` after deploying. Set to the web FQDN, e.g. `https://web-sentry.edukey.ai`. |
 
-Output: the FQDN, e.g. `https://policylab.edukey.ai`, and a deploy webhook URL.
-
-### 3. Wire the GitHub secrets (2 min)
+To set them via CLI:
 
 ```powershell
-# Create org auth token at https://devpowers.sentry.io/settings/auth-tokens/
-# Name: "GitHub Actions — sentry-course-06-2026", scope: org:ci
-gh secret set SENTRY_AUTH_TOKEN --env training --repo LucasMatuszewski/sentry-course-06-2026
-# (paste the sntrys_... token)
-
+gh secret set SENTRY_AUTH_TOKEN  --env training --repo LucasMatuszewski/sentry-course-06-2026
 gh secret set COOLIFY_WEBHOOK_URL --env training --repo LucasMatuszewski/sentry-course-06-2026
-# (paste the deploy webhook URL from step 2)
-
-gh variable set PUBLIC_URL --env training --body "https://policylab.edukey.ai" --repo LucasMatuszewski/sentry-course-06-2026
+gh secret set COOLIFY_API_TOKEN   --env training --repo LucasMatuszewski/sentry-course-06-2026
+gh variable set PUBLIC_URL        --env training --body "https://web-sentry.edukey.ai" --repo LucasMatuszewski/sentry-course-06-2026
 ```
 
-### 4. Replace the placeholder URL in slides (30 sec)
+## How to verify each leg of the pipeline
 
-```powershell
-$url = "https://policylab.edukey.ai"   # whatever Coolify gave you
-(Get-Content course-materials/slides/index.html) `
-  -replace 'https://policylab\.edukey\.ai', $url `
-  | Set-Content course-materials/slides/index.html
-git commit -am "docs(slides): point to live training URL"
-git push
-```
+1. **GHCR image visibility.** `docker pull ghcr.io/lucasmatuszewski/sentry-course-06-2026-api:main` from a fresh shell must succeed without credentials. If it fails: GitHub → user-packages settings → set both packages public.
+2. **CI/release.** Push a trivial commit that touches `apps/api-spring/` (so it bypasses paths-ignore). `gh run watch` it.
+3. **Source artifact upload.** In the workflow's `spring-image` job, look for the `:sentryBundleSourcesJava` and `:sentryUploadSourceBundleJava` Gradle task lines. If they are absent, the Sentry Gradle plugin did not pick up the auth token.
+4. **Coolify pull.** After CI finishes, Coolify webhook should fire. Check Coolify → app → Deployments. Most recent entry should match the new commit SHA.
+5. **Spring runtime init.** Coolify → app → Logs → switch dropdown from "Deployment" to the `api` container. Look for `Sentry SDK X.Y.Z has started` and `DSN: https://...`. If absent: env vars (especially `SENTRY_DSN`) did not reach the container.
+6. **End-to-end capture.** Hit `https://web-sentry.edukey.ai`, click **Wymuś błąd 500**. Within ~10 seconds, a new `DemoServerException` issue should appear in <https://devpowers.sentry.io/issues/?project=4511644672983120>.
+7. **Trace linkage.** Same click should produce one Sentry trace spanning Angular (`POST /api/quotes`) and Spring (`http.server`). Both projects' issues should reference the same trace ID.
 
-### 5. Trigger a release to verify end-to-end (3 min)
-
-```powershell
-# The push from step 4 will trigger the Release workflow automatically.
-gh run watch --repo LucasMatuszewski/sentry-course-06-2026
-```
-
-After workflow finishes:
-- Open the FQDN; click **Pobierz wycenę** → expect JSON
-- Click **Wymuś błąd 500** → expect "Błąd: 500"
-- Check <https://devpowers.sentry.io/issues/?environment=training> — fresh issue with the new release tag
-
-### 6. (Optional, ~10 min) Pre-seed buggy + fixed releases for Exercise 04
+## Optional: pre-seed buggy + fixed releases (Exercise 04 trend data)
 
 ```powershell
 ./scripts/seed-releases.ps1
 ```
 
-This creates two commits (buggy then fix), waits for both Release workflows, and pings the live stack to generate trend data. If you skip it, you can still run exercise 04 against historical events by adjusting the trainer runbook.
+Creates two commits (buggy then fix), waits for both release workflows, hits the live stack to generate trend data on the `release trend after fix` exercise.
 
-## If you only have 10 minutes
+## Rehearsal helpers in the slides
 
-Skip step 6 and step 2 (Coolify deploy). The workshop still works fully — Angular and Spring run locally on each participant's laptop via `pnpm exec ng serve` + `./gradlew bootRun`. The deploy demo at 13:30 becomes an explanation rather than a live deploy.
+The deck supports a `?clock=HH:MM` query parameter for testing reminder banners without waiting for real time:
 
-The slides have a `?clock=HH:MM` override so you can rehearse banner timing without waiting:
+- `course-materials/slides/index.html?clock=10:55#slide-15` — see the 11:00 break banner 5 minutes earlier
+- `course-materials/slides/index.html?clock=13:28#slide-23` — see the survey banner 2 minutes earlier
 
-- `course-materials/slides/index.html?clock=10:55#slide-15` — see the 11:00 break banner pop in 5 minutes
-- `course-materials/slides/index.html?clock=13:28#slide-23` — see the survey banner pop in 2 minutes
-
-## Files added during the night
+## Where everything lives
 
 | File | Why |
 |---|---|
-| `apps/angular/Dockerfile` + `nginx.conf` | Multi-stage build; nginx + /api proxy |
-| `apps/api-spring/Dockerfile` | Multi-stage Temurin build, healthcheck |
-| `compose.yaml` (root) | Two services, GHCR images, internal network |
-| `.env.example` | Documents the contract |
-| `.github/workflows/release.yml` (rewritten) | Builds both images, uploads source maps, deploys |
-| `.github/workflows/ci.yml` (fixed) | PR validation, no secrets, Linux-runner-safe |
-| `course-materials/guides/setup-tokens-and-deploy.md` | Token decision matrix |
-| `course-materials/guides/coolify-bootstrap.md` | 3-minute Coolify checklist |
+| `apps/angular/Dockerfile` + `nginx.conf` | Multi-stage build; nginx serves SPA + reverse-proxies `/api/` to Spring |
+| `apps/api-spring/Dockerfile` | Multi-stage Temurin 17 build; `eclipse-temurin:17-jdk-noble` (Alpine variants lack arm64) |
+| `compose.yaml` (root) | Two services pulling pre-built GHCR images; DSN hardcoded inline because it is public |
+| `.env.example` | Documents the runtime env contract |
+| `.github/workflows/release.yml` | Build + upload + push image + Coolify deploy + Sentry release |
+| `.github/workflows/ci.yml` | PR validation, no secrets |
+| `course-materials/guides/setup-tokens-and-deploy.md` | Token decision matrix and exact CLI commands |
+| `course-materials/guides/coolify-bootstrap.md` | Coolify UI walkthrough for first-time setup |
 | `scripts/seed-releases.ps1` | Buggy + fixed release seed for Exercise 04 |
-
-Good luck. The deck is ready, the code is ready, the CI is ready. The remaining 15 minutes are mostly clicks.
