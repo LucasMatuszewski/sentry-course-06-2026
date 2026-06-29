@@ -163,7 +163,12 @@ jobs:
     env:
       SENTRY_PROJECT: java-spring-boot
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      SENTRY_RELEASE: ${{ needs.meta.outputs.spring_release }}
+      # Pinned to "api-spring@main" (not per-SHA) so the source bundle the
+      # Gradle plugin uploads is tagged with the SAME release identifier
+      # that the running container reports via compose.yaml's SENTRY_RELEASE.
+      # Without this match, Sentry has the bundle but can't link it to the
+      # runtime event => no source context in stack traces.
+      SENTRY_RELEASE: api-spring@main
     steps:
       - uses: actions/checkout@v4
         with:
