@@ -1,0 +1,48 @@
+# Adapted from Samples/iOS-SwiftUI-SPM/iOS-SwiftUI-SPM.yml in sentry-cocoa.
+# Copyright (c) 2015 Sentry. Licensed under the MIT License.
+# Upstream commit: 1ec4cb5bf6059838f8ce137ba53aeac6765317ce
+
+name: iOS-Sentry-Reference
+createIntermediateGroups: true
+generateEmptyDirectories: true
+configs:
+  Debug: debug
+  Release: release
+packages:
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa.git
+    from: 9.19.0
+fileGroups:
+  - project.yml
+  - README.md
+  - UPSTREAM.md
+  - LICENSE.md
+options:
+  bundleIdPrefix: io.sentry.reference
+targets:
+  iOS-Sentry-Reference:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - Sources
+      - Resources
+    dependencies:
+      - package: Sentry
+        product: SentrySPM
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.sentry.reference.swiftui
+        INFOPLIST_FILE: Resources/Info.plist
+        SWIFT_VERSION: "5.0"
+        SENTRY_DSN: ""
+schemes:
+  iOS-Sentry-Reference:
+    build:
+      targets:
+        iOS-Sentry-Reference: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+

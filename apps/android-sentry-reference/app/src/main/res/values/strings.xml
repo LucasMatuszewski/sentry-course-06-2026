@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Sentry Android Reference</string>
+    <string name="intro">Minimal standalone reference adapted from the official Sentry Android sample. Configure a DSN, then use these actions to inspect events and traces.</string>
+    <string name="capture_message">Capture message</string>
+    <string name="capture_exception">Capture handled exception</string>
+    <string name="capture_context">Capture with pseudonymous user ID</string>
+    <string name="capture_log">Send Sentry Log (no PII demo)</string>
+    <string name="capture_feedback">Open User Feedback (name/email hidden)</string>
+    <string name="capture_transaction">Finish manual transaction</string>
+    <string name="trigger_crash">Trigger uncaught crash</string>
+    <string name="ready">Ready. With an empty DSN, capture calls are no-ops.</string>
+    <string name="captured_event">%1$s capture returned event ID %2$s</string>
+    <string name="log_sent">Privacy-safe training log submitted without user data.</string>
+    <string name="feedback_opened">Feedback form opened. Submission is an explicit user action.</string>
+    <string name="transaction_finished">Manual transaction and child span finished.</string>
+</resources>

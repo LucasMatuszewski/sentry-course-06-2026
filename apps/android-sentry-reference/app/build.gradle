@@ -1,0 +1,30 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "io.sentry.reference.android"
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "io.sentry.reference.android"
+        minSdk 21
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        manifestPlaceholders = [
+            sentryDsn: providers.gradleProperty("sentryDsn").getOrElse("")
+        ]
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "io.sentry:sentry-android:8.46.0"
+}
+

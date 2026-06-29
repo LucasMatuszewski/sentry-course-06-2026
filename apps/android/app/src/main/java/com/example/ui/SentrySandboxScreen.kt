@@ -1544,7 +1544,7 @@ fun TabDeveloperReference() {
             code = """
 // W pliku Application onCreate():
 SentryAndroid.init(this) { options ->
-    options.dsn = "https://60c377bf4862a6a8f0073462e41464e6@..."
+    options.dsn = "https://9e8d71703ab027cf8474da46ffc220cd@..."
     options.environment = "production-pl"
     options.release = "polsecure-app@1.0.0"
     
