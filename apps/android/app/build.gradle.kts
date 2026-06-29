@@ -7,6 +7,11 @@ plugins {
   alias(libs.plugins.roborazzi)
   alias(libs.plugins.secrets)
   alias(libs.plugins.google.services)
+  // Sentry Android Gradle plugin — uploads R8/ProGuard mapping + Kotlin
+  // source context per release build. Active only when SENTRY_AUTH_TOKEN
+  // is in the build environment, so debug builds and zero-auth CI stay
+  // silent.
+  alias(libs.plugins.sentry.android)
 }
 
 android {
@@ -42,7 +47,12 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = false
+      // Enable R8 obfuscation + shrinking so there is actually a mapping
+      // file to upload to Sentry. Without this the release stack traces
+      // are already readable and the demo loses its point. The matching
+      // Sentry mapping makes deobfuscation server-side automatic.
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
@@ -70,6 +80,51 @@ secrets {
 
 googleServices {
   missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN
+}
+
+// Sentry Android plugin configuration.
+//
+// What this does at release-build time:
+//   1. Generates an R8/ProGuard mapping.txt (because isMinifyEnabled=true).
+//   2. Uploads mapping.txt to Sentry tagged with this app's versionName +
+//      versionCode + applicationId so Sentry can deobfuscate stack
+//      traces server-side.
+//   3. Generates and uploads a Kotlin source bundle so issues show source
+//      context (the lines of code around the failing frame).
+//   4. Tracks the release in Sentry with the same identifier.
+//
+// All four steps require SENTRY_AUTH_TOKEN to be present in the build
+// environment (org-owned token, scope org:ci). When absent (debug builds,
+// fork PRs), every step is silently skipped — no upload, no error.
+//
+// Trainer demo path:
+//   $env:SENTRY_AUTH_TOKEN="sntrys_..."   # one-time, per shell
+//   ./gradlew :app:assembleRelease         # build APK with obfuscation,
+//                                          # mapping + source upload run.
+//
+// Reference: https://docs.sentry.io/platforms/android/configuration/gradle/
+sentry {
+  // Default to no-op when token absent.
+  ignoredBuildTypes.set(setOf("debug"))
+
+  autoUploadProguardMapping.set(
+    System.getenv("SENTRY_AUTH_TOKEN")?.isNotBlank() == true
+  )
+  includeProguardMapping.set(true)
+
+  // Kotlin source context — shows code lines next to stack frames.
+  includeSourceContext.set(
+    System.getenv("SENTRY_AUTH_TOKEN")?.isNotBlank() == true
+  )
+
+  // Track release in Sentry; identifier matches the Sentry Android SDK
+  // default release naming (applicationId@versionName+versionCode).
+  autoInstallation { enabled.set(false) }   // SDK already added manually.
+  tracingInstrumentation { enabled.set(true) }
+
+  org.set("devpowers")
+  projectName.set("android")
+  authToken.set(System.getenv("SENTRY_AUTH_TOKEN") ?: "")
 }
 
 
