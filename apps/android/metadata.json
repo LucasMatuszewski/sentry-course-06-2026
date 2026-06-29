@@ -1,0 +1,6 @@
+{
+  "name": "PolSecure",
+  "description": "Interactive Sentry SDK Sandbox and Polish Insurance training application for senior developers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
