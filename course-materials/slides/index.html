@@ -12,8 +12,11 @@
     --muted: #b9add0;
     --accent: #ff8a5b;
     --accent-2: #6ee7ff;
+    --accent-3: #c4a4ff;
+    --warn: #ffd166;
     --rule: rgba(255,255,255,0.12);
     --focus: #ffd166;
+    --panel: rgba(255,255,255,0.04);
   }
   * { box-sizing: border-box; }
   html, body {
@@ -25,17 +28,13 @@
   }
   body.print { overflow: auto; }
 
-  /* Deck */
   #deck {
     position: relative;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
   }
-  body.print #deck {
-    height: auto;
-    overflow: visible;
-  }
+  body.print #deck { height: auto; overflow: visible; }
 
   .slide {
     position: absolute;
@@ -43,7 +42,7 @@
     display: none;
     flex-direction: column;
     justify-content: center;
-    padding: 6vh 8vw 10vh;
+    padding: 5vh 6vw 8vh;
     background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
   }
   .slide.active { display: flex; }
@@ -57,36 +56,37 @@
   }
 
   .slide h1 {
-    font-size: clamp(36px, 4.6vw, 84px);
+    font-size: clamp(32px, 4vw, 72px);
     line-height: 1.05;
-    margin: 0 0 4vh;
+    margin: 0 0 3vh;
     letter-spacing: -0.01em;
   }
   .slide h2 {
-    font-size: clamp(24px, 2.2vw, 40px);
+    font-size: clamp(20px, 1.9vw, 34px);
     color: var(--accent-2);
-    margin: 0 0 2vh;
+    margin: 0 0 1.5vh;
     font-weight: 600;
   }
   .slide .timecode {
     display: inline-block;
-    font-size: clamp(18px, 1.4vw, 26px);
+    font-size: clamp(16px, 1.2vw, 22px);
     color: var(--bg);
     background: var(--accent);
     padding: 4px 14px;
     border-radius: 999px;
-    margin-bottom: 3vh;
+    margin-bottom: 2vh;
     font-weight: 700;
     letter-spacing: 0.02em;
+    align-self: flex-start;
   }
   .slide ul {
     margin: 0;
     padding-left: 1.2em;
-    font-size: clamp(20px, 1.7vw, 32px);
+    font-size: clamp(18px, 1.5vw, 28px);
     line-height: 1.4;
   }
-  .slide ul li { margin-bottom: 1.2vh; }
-  .slide ul li code, .slide p code {
+  .slide ul li { margin-bottom: 0.8vh; }
+  .slide ul li code, .slide p code, .slide .lede code {
     background: rgba(255,255,255,0.08);
     border-radius: 6px;
     padding: 1px 8px;
@@ -95,143 +95,180 @@
     font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
   }
   .slide p {
-    font-size: clamp(20px, 1.6vw, 30px);
+    font-size: clamp(18px, 1.5vw, 28px);
     line-height: 1.45;
-    margin: 0 0 2vh;
+    margin: 0 0 1.5vh;
   }
   .slide .kicker {
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     color: var(--muted);
-    font-size: clamp(14px, 1vw, 18px);
-    margin-bottom: 2vh;
+    font-size: clamp(12px, 0.9vw, 15px);
+    margin-bottom: 1vh;
   }
   .slide .lede {
     color: var(--muted);
-    font-size: clamp(22px, 1.8vw, 34px);
+    font-size: clamp(18px, 1.5vw, 28px);
     max-width: 1100px;
   }
   a, a:visited { color: var(--accent-2); }
+  a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-  /* Title slide variant */
   .slide.title { text-align: left; }
-  .slide.title h1 { font-size: clamp(48px, 6.5vw, 120px); }
+  .slide.title h1 { font-size: clamp(42px, 5.6vw, 100px); }
   .slide.title .meta {
-    margin-top: 4vh;
-    font-size: clamp(20px, 1.5vw, 28px);
+    margin-top: 3vh;
+    font-size: clamp(18px, 1.3vw, 24px);
     color: var(--muted);
   }
+
+  /* Section divider — bigger H1, no module body */
+  .slide.section h1 { font-size: clamp(44px, 5.4vw, 96px); }
+  .slide.section { background: linear-gradient(135deg, #2b1d4a 0%, #3a275f 100%); }
+  .slide.section .lede { font-size: clamp(22px, 1.8vw, 32px); }
+
+  /* Trainer panel: 2-column layout with do/say/check cards */
+  .slide.trainer { padding: 4vh 5vw 6vh; }
+  .slide.trainer h1 { font-size: clamp(28px, 3vw, 52px); margin-bottom: 1.5vh; }
+  .slide.trainer .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vh 2vw;
+    flex: 1;
+    min-height: 0;
+  }
+  .slide.trainer .panel-grid.full { grid-template-columns: 1fr; }
+  .slide.trainer .card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 16px 20px;
+    overflow: hidden;
+  }
+  .slide.trainer .card h3 {
+    font-size: clamp(14px, 1vw, 18px);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--accent-2);
+    margin: 0 0 10px;
+    font-weight: 700;
+  }
+  .slide.trainer .card.do h3 { color: var(--accent); }
+  .slide.trainer .card.say h3 { color: var(--accent-3); }
+  .slide.trainer .card.check h3 { color: var(--warn); }
+  .slide.trainer .card ul {
+    font-size: clamp(15px, 1.1vw, 20px);
+    padding-left: 1.2em;
+    margin: 0;
+  }
+  .slide.trainer .card ul li { margin-bottom: 4px; }
+  .slide.trainer .card p {
+    font-size: clamp(15px, 1.1vw, 20px);
+    margin: 0 0 6px;
+  }
+  .slide.trainer .card pre {
+    background: rgba(0,0,0,0.45);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 4px 0 8px;
+    font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+    font-size: clamp(13px, 0.95vw, 17px);
+    color: var(--accent-2);
+    white-space: pre;
+    overflow: auto;
+  }
+  .slide.trainer .card pre.bash { color: #fff7c2; }
+  .slide.trainer .card a {
+    display: inline-block;
+    margin-bottom: 3px;
+    word-break: break-all;
+  }
+
+  /* Survey priority highlight */
+  .pri {
+    display: inline-block;
+    background: rgba(255, 209, 102, 0.15);
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.7em;
+    margin-left: 12px;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .pri.audience { background: rgba(110, 231, 255, 0.12); border-color: var(--accent-2); color: var(--accent-2); }
+
+  /* Two-column body for non-trainer slides */
+  .slide .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3vw; }
+  .slide .cols h2 { margin-top: 0; }
 
   /* Chrome */
   .topbar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 24px;
-    pointer-events: none;
-    z-index: 10;
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 24px; pointer-events: none; z-index: 10;
   }
   body.print .topbar { display: none; }
   .topbar .brand {
-    font-weight: 700;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    font-size: 14px;
-    text-transform: uppercase;
+    font-weight: 700; color: var(--muted);
+    letter-spacing: 0.08em; font-size: 14px; text-transform: uppercase;
   }
   #clock {
     font-variant-numeric: tabular-nums;
     background: rgba(0,0,0,0.35);
     border: 1px solid var(--rule);
     border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 18px;
-    color: var(--fg);
-    font-weight: 600;
+    padding: 6px 14px; font-size: 18px;
+    color: var(--fg); font-weight: 600;
   }
 
   .footer {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 24px 14px;
-    pointer-events: none;
-    z-index: 10;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 24px 14px; pointer-events: none; z-index: 10;
   }
   body.print .footer { display: none; }
   #counter {
     font-variant-numeric: tabular-nums;
-    color: var(--muted);
-    font-size: 16px;
+    color: var(--muted); font-size: 16px;
     background: rgba(0,0,0,0.35);
     border: 1px solid var(--rule);
-    border-radius: 999px;
-    padding: 4px 12px;
+    border-radius: 999px; padding: 4px 12px;
   }
-  .hint {
-    color: var(--muted);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
+  .hint { color: var(--muted); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
 
   #progress {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    z-index: 9;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 4px; background: rgba(255,255,255,0.06); z-index: 9;
   }
   body.print #progress { display: none; }
   #progress > div {
-    height: 100%;
-    width: 0%;
+    height: 100%; width: 0%;
     background: linear-gradient(90deg, var(--accent), var(--accent-2));
     transition: width 0.25s ease;
   }
 
-  /* Nav buttons */
   .nav-btn {
-    position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.04);
-    color: var(--fg);
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    width: 48px; height: 48px;
-    cursor: pointer;
-    font-size: 22px;
-    z-index: 11;
-    opacity: 0.4;
-    transition: opacity 0.2s;
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.04); color: var(--fg);
+    border: 1px solid var(--rule); border-radius: 999px;
+    width: 48px; height: 48px; cursor: pointer;
+    font-size: 22px; z-index: 11;
+    opacity: 0.4; transition: opacity 0.2s;
   }
   .nav-btn:hover { opacity: 1; }
-  .nav-btn:focus-visible {
-    outline: 3px solid var(--focus);
-    outline-offset: 3px;
-    opacity: 1;
-  }
-  #prev { left: 16px; }
-  #next { right: 16px; }
+  .nav-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; opacity: 1; }
+  #prev { left: 16px; } #next { right: 16px; }
   body.print .nav-btn { display: none; }
 
-  /* Reminder banner */
   #banners {
-    position: fixed;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: min(820px, 90vw);
-    pointer-events: none;
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    z-index: 20; display: flex; flex-direction: column; gap: 12px;
+    width: min(820px, 90vw); pointer-events: none;
   }
   body.print #banners { display: none; }
   .banner {
@@ -241,21 +278,13 @@
     border-radius: 14px;
     padding: 18px 22px;
     box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-    font-size: 22px;
-    line-height: 1.3;
+    font-size: 22px; line-height: 1.3;
     cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
     animation: drop 0.35s ease both;
   }
   .banner strong { display: block; font-size: 14px; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.7; margin-bottom: 4px; }
-  .banner .x {
-    font-size: 18px;
-    opacity: 0.7;
-    flex: 0 0 auto;
-  }
+  .banner .x { font-size: 18px; opacity: 0.7; flex: 0 0 auto; }
   .banner a { color: #1b1530; text-decoration: underline; font-weight: 700; }
   @keyframes drop {
     from { opacity: 0; transform: translateY(-12px); }
@@ -272,276 +301,903 @@
 
 <div id="deck" aria-live="polite">
 
+  <!-- ========================================================== -->
+  <!-- 0  Title                                                   -->
+  <!-- ========================================================== -->
   <section class="slide title" id="slide-0">
-    <div class="kicker">2026-06-29 · Europe/Warsaw</div>
-    <h1>Sentry Enterprise Developer Workshop</h1>
-    <p class="lede">A practical, one-day deep dive into error monitoring, tracing, and operational visibility with Sentry.</p>
-    <div class="meta">Audience: DevPowers training cohort &middot; Trainer: Edukey</div>
+    <div class="kicker">2026-06-29 · Europe/Warsaw · Teams</div>
+    <h1>Sentry dla developerów</h1>
+    <p class="lede">Jednodniowy warsztat praktyczny: od konfiguracji do diagnozy błędu. Angular + Spring Boot 4 + Android, z trasowaniem rozproszonym i playbookiem produkcyjnym.</p>
+    <div class="meta">Łukasz Matuszewski · Edukey · grupa DevPowers</div>
   </section>
 
+  <!-- 1  How this deck guides the day -->
   <section class="slide" id="slide-1">
-    <h2>Agenda</h2>
-    <h1>How today flows</h1>
+    <h2>How to drive this deck</h2>
+    <h1>Trainer-coach slides</h1>
     <ul>
-      <li>09:00–10:10 Welcome, fundamentals, SDK model</li>
-      <li>10:10–11:00 Projects &amp; SDK configuration</li>
-      <li>11:15–13:00 Angular + Spring onboarding &amp; triage exercise</li>
-      <li>13:30–14:30 Releases, source maps, R8/ProGuard, dSYM</li>
-      <li>14:30–15:30 Tracing, logs, Replay, profiling</li>
-      <li>15:40–17:00 Alerts, mobile, AI/MCP, deployment checklist, Q&amp;A</li>
+      <li>Each module has a <strong>Trainer panel</strong> with what to open in DevPowers, what CLI command to run, what to say, what to check.</li>
+      <li>Reminder banners pop at <code>11:00</code>, <code>13:00</code>, <code>13:30</code> (survey), <code>15:30</code>.</li>
+      <li>Survey priorities are tagged <span class="pri">SURVEY</span>; audience-workflow links tagged <span class="pri audience">JIRA WORKFLOW</span>.</li>
+      <li>Keys: <code>← →</code> / <code>Space</code> nav · <code>F</code> fullscreen · <code>P</code> print · <code>#slide-N</code> deep link.</li>
+      <li>Rehearsal: append <code>?clock=10:55</code> to test the 11:00 banner now.</li>
     </ul>
   </section>
 
+  <!-- 2  Agenda overview -->
   <section class="slide" id="slide-2">
-    <h2>Why Sentry</h2>
-    <h1>One operational lens, not five</h1>
-    <ul>
-      <li>Errors with stack, breadcrumbs, release context</li>
-      <li>Distributed tracing across frontend, backend, mobile</li>
-      <li>Structured logs correlated to traces</li>
-      <li>Session Replay for the user-side of the incident</li>
-      <li>Profiling for hotspots without separate APM tooling</li>
-    </ul>
+    <h2>Agenda — 09:00–17:00 Europe/Warsaw</h2>
+    <h1>The day at a glance</h1>
+    <div class="cols">
+      <div>
+        <ul>
+          <li><code>09:00–09:20</code> Welcome, access, preflight</li>
+          <li><code>09:20–10:10</code> 1.1 Workflow + 1.3 Triage primer</li>
+          <li><code>10:10–11:00</code> 1.2 Projects, SDK, privacy</li>
+          <li><code>11:00–11:15</code> Break</li>
+          <li><code>11:15–12:00</code> Angular + Spring onboarding</li>
+          <li><code>12:00–13:00</code> Hidden-bug triage exercise</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li><code>13:00–13:30</code> Lunch</li>
+          <li><code>13:30</code> Survey reminder banner</li>
+          <li><code>13:30–14:30</code> 1.4 Releases + source artifacts</li>
+          <li><code>14:30–15:30</code> 1.5 Tracing, logs, Replay</li>
+          <li><code>15:40–16:15</code> 1.6 Alerts &amp; Jira/Bitbucket</li>
+          <li><code>16:15–16:40</code> Android / mobile</li>
+          <li><code>16:40–17:00</code> 1.7 AI/MCP + 1.8 Wrap-up</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
+  <!-- 3  Survey — what you told us -->
   <section class="slide" id="slide-3">
-    <span class="timecode">09:00–09:20</span>
-    <h1>Welcome, access, preflight</h1>
-    <ul>
-      <li>Sign in to <code>sentry.io</code> with your DevPowers SSO</li>
-      <li>Confirm you are in the <strong>DevPowers</strong> organization</li>
-      <li>Project-level write access on the workshop projects</li>
-      <li>Slack channel + repo URL shared in chat</li>
-      <li>Open <code>course-materials/exercises/</code> in your editor</li>
-    </ul>
+    <h2>What you told us in the survey</h2>
+    <h1>Co dziś rzeczywiście rozwiązujemy</h1>
+    <div class="cols">
+      <div>
+        <h2>Audience</h2>
+        <ul>
+          <li>5 senior dev/architect — Java/Angular, Android (10y), Frontend 15y</li>
+          <li>2× Sentry knowledge 1/5, 1× 2/5 — assume <em>no</em> baseline</li>
+          <li>Stack: Angular, Spring Boot, Android (Kotlin), iOS reference</li>
+          <li>Tooling: <strong>JetBrains</strong>, <strong>Bitbucket</strong>, <strong>Jira</strong>, Jenkins, Windows + macOS</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Explicit priorities</h2>
+        <ul>
+          <li>Recover <strong>complete Android logs without minification</strong> (R8/ProGuard)</li>
+          <li>Filter by a <strong>specific device</strong></li>
+          <li>Observe <strong>issue trends after a fix</strong></li>
+          <li>Attach <strong>custom fields/context</strong> to logs and events</li>
+          <li>Tracing &amp; performance analysis</li>
+          <li>Data scrubbing &amp; data privacy</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
+  <!-- 4  Your Jira → Sentry workflow bridge -->
   <section class="slide" id="slide-4">
-    <span class="timecode">09:20–10:10</span>
-    <h2>Fundamentals</h2>
-    <h1>The Sentry object model</h1>
+    <h2>Your current workflow → Sentry</h2>
+    <h1>Where Sentry plugs into what you already do <span class="pri audience">JIRA WORKFLOW</span></h1>
     <ul>
-      <li><strong>Organization</strong> → SSO, billing, retention</li>
-      <li><strong>Team</strong> → ownership, alert routing</li>
-      <li><strong>Project</strong> → one app or service, one DSN per platform</li>
-      <li><strong>SDK + DSN</strong> → ingestion endpoint, public by design</li>
-      <li><strong>Event</strong> → one occurrence; <strong>Issue</strong> → grouped events</li>
+      <li><strong>Today:</strong> Jira ticket → notification → ownership → analysis → bugfix branch → test deploy → PR → merge.</li>
+      <li><strong>With Sentry:</strong> SDK captures error in prod → Issue created (suspect commit + ownership auto) → Jira ticket auto-created from rule → analysis starts with full stack/breadcrumbs/release context → fix → release with same SHA → Sentry shows trend after fix.</li>
+      <li><strong>Net gain:</strong> "analiza na podstawie zgłoszenia + próba odtworzenia w test env" stops being the first step; you start with evidence.</li>
+      <li>We will keep <strong>Jira/Bitbucket</strong> as the system of record — Sentry is the diagnostic layer, not a replacement.</li>
     </ul>
   </section>
 
-  <section class="slide" id="slide-5">
-    <h2>Issue lifecycle</h2>
-    <h1>Capture → group → triage → resolve</h1>
-    <ul>
-      <li><strong>Capture</strong>: SDK normalises and tags the event</li>
-      <li><strong>Group</strong>: fingerprint based on stack + message</li>
-      <li><strong>Assign</strong>: ownership rules or manual</li>
-      <li><strong>Triage</strong>: priority, environment, release filters</li>
-      <li><strong>Resolve</strong>: by commit, release, or "next release"</li>
-      <li><strong>Regression</strong>: auto-reopen on a later release</li>
-    </ul>
+  <!-- ========================================================== -->
+  <!-- 09:00 – 09:20  Welcome / access / preflight                -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-5">
+    <span class="timecode">09:00 – 09:20</span>
+    <h1>Welcome, access, preflight</h1>
+    <p class="lede">Get everyone signed in, oriented, and into the workshop projects before we touch a single SDK.</p>
   </section>
 
-  <section class="slide" id="slide-6">
-    <span class="timecode">10:10–11:00</span>
-    <h2>Configuration</h2>
-    <h1>Projects &amp; SDK options that matter</h1>
-    <ul>
-      <li><code>environment</code>: prod / staging / dev — never lump together</li>
-      <li><code>release</code>: tie events to a build artifact</li>
-      <li><code>tracesSampleRate</code> / <code>profilesSampleRate</code>: cost lever</li>
-      <li><code>inAppInclude</code>: your code vs vendor noise</li>
-      <li><code>beforeSend</code>: last-mile scrubbing &amp; routing</li>
-    </ul>
+  <section class="slide trainer" id="slide-6">
+    <span class="timecode">09:00 – 09:20</span>
+    <h2>Trainer panel · Preflight</h2>
+    <h1>Open these, run these, say these</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/" target="_blank" rel="noopener">DevPowers org home</a>
+        <a href="https://devpowers.sentry.io/settings/teams/devpowers/members/" target="_blank" rel="noopener">Org members</a>
+        <a href="https://devpowers.sentry.io/settings/projects/" target="_blank" rel="noopener">Projects (4)</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026" target="_blank" rel="noopener">Repo (clone before lunch)</a>
+      </div>
+      <div class="card do">
+        <h3>CLI sanity check</h3>
+        <pre class="bash">sentry --version
+sentry whoami
+sentry org list
+sentry project list</pre>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"You all have <strong>project-level write</strong> on the four workshop projects — not org admin."</li>
+          <li>"DSNs are <strong>public</strong>; an org auth token is <strong>not</strong>. Treat tokens like passwords."</li>
+          <li>"There are <strong>two</strong> CLIs both called <code>sentry</code> — we will cover both."</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Check</h3>
+        <ul>
+          <li>Everyone can reach <code>devpowers.sentry.io</code>.</li>
+          <li>Microphones working. Teams screen-share at 1920×1080.</li>
+          <li>Galaxy S24 mirrored + scrcpy fallback ready.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
-  <section class="slide" id="slide-7">
-    <h2>Privacy baseline</h2>
-    <h1>Default to less data</h1>
-    <ul>
-      <li><code>send-default-pii=false</code> — opt in, never opt out</li>
-      <li>Pseudonymous user IDs, never raw email / login</li>
-      <li>Narrow custom context — only what helps triage</li>
-      <li>Server-side scrubbing + client-side <code>beforeSend</code></li>
-      <li>Document what you collect — review with security &amp; legal</li>
-    </ul>
+  <!-- ========================================================== -->
+  <!-- 09:20 – 10:10  1.1 Workflow + 1.3 Triage primer           -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-7">
+    <span class="timecode">09:20 – 10:10</span>
+    <h1>1.1 Sentry w workflow developera</h1>
+    <p class="lede">From "what alert just fired?" to a fix decision in five minutes — covering the Sentry object model and a full issue lifecycle walk-through.</p>
   </section>
 
   <section class="slide" id="slide-8">
-    <span class="timecode">11:00–11:15</span>
-    <h1>Break</h1>
-    <p class="lede">Stretch, coffee, hydrate. Back at 11:15 sharp.</p>
+    <h2>Object model — the only diagram you must memorize</h2>
+    <h1>Org → Team → Project → SDK → DSN → Event → Issue</h1>
+    <ul>
+      <li><strong>Organization</strong> (<code>devpowers</code>) — SSO, billing, retention, rate limits.</li>
+      <li><strong>Team</strong> — ownership routing and alert subscribers.</li>
+      <li><strong>Project</strong> — one app or service. One DSN per platform. We have <em>android</em>, <em>apple-ios</em>, <em>java-spring-boot</em>, <em>javascript-angular</em>.</li>
+      <li><strong>SDK + DSN</strong> — ingestion URL. <em>Public by design</em>; rate-limit and rotate if abused.</li>
+      <li><strong>Event</strong> = one occurrence. <strong>Issue</strong> = grouped events with shared fingerprint. <strong>Release</strong> + <strong>environment</strong> are filters across both.</li>
+    </ul>
   </section>
 
   <section class="slide" id="slide-9">
-    <span class="timecode">11:15–12:00</span>
-    <h2>Onboarding</h2>
-    <h1>Angular + Spring: wizard vs manual</h1>
+    <h2>Sentry should answer five questions</h2>
+    <h1>Co · komu · od kiedy · w którym release · z jakim wpływem</h1>
     <ul>
-      <li>Wizard captures DSN + sample rates; good for greenfield</li>
-      <li>Manual install for monorepos &amp; CI-driven config</li>
-      <li>DSN as env var: <code>SENTRY_DSN</code>, never hardcoded</li>
-      <li>Verify a synthetic event from the app before declaring done</li>
-      <li>Confirm release + environment match the running build</li>
+      <li><strong>What</strong> — exception, message, span anomaly, custom log.</li>
+      <li><strong>Who</strong> — pseudonymous user ID, device, environment, geography.</li>
+      <li><strong>When</strong> — first/last seen, frequency timeline, regression after release X.</li>
+      <li><strong>Where in code</strong> — symbolicated stack, suspect commits, owners.</li>
+      <li><strong>Impact</strong> — affected users, sessions, transactions, downstream services.</li>
     </ul>
   </section>
 
-  <section class="slide" id="slide-10">
-    <h2>PolicyLab demo</h2>
-    <h1>Angular → /api/quotes → Spring</h1>
-    <ul>
-      <li>Synthetic insurance domain — no real client data</li>
-      <li>Angular SPA calls Spring REST endpoint</li>
-      <li><code>X-Scenario</code> header toggles deliberate bugs</li>
-      <li>Traces propagate via <code>sentry-trace</code> + <code>baggage</code></li>
-      <li>Same DSN org, separate projects per platform</li>
-    </ul>
+  <section class="slide trainer" id="slide-10">
+    <span class="timecode">09:20 – 10:10</span>
+    <h2>Trainer panel · Live issues tour</h2>
+    <h1>Drive the Issues page with intent</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/issues/?environment=training" target="_blank" rel="noopener">All issues — training env</a>
+        <a href="https://devpowers.sentry.io/issues/?project=4511646810570832&environment=training" target="_blank" rel="noopener">Angular issues (javascript-angular)</a>
+        <a href="https://devpowers.sentry.io/issues/?project=4511644672983120&environment=training" target="_blank" rel="noopener">Spring issues (java-spring-boot)</a>
+        <a href="https://devpowers.sentry.io/issues/?project=4511645677453392&environment=training" target="_blank" rel="noopener">Android issues</a>
+        <p>Then walk the 6-step tour in <code>course-materials/sentry-onboarding-issues-tour/issues-tour.md</code>.</p>
+      </div>
+      <div class="card do">
+        <h3>CLI (dev/agent — interactive)</h3>
+        <pre class="bash">sentry issue list devpowers/android \
+  --query "is:unresolved" --limit 5
+sentry issue view &lt;issue-id&gt;
+sentry issue explain &lt;issue-id&gt;
+sentry issue plan &lt;issue-id&gt;</pre>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"Aggregate impact first, then drill into one event. <em>Never</em> jump into a single event without the issue context."</li>
+          <li>"Suspect commits work because your repo is linked. Without that link Sentry can still help, but loses half its punch."</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Exercise</h3>
+        <p><strong>Exercise 01</strong> — Login + filter by environment. Path: <code>course-materials/exercises/01-login-filtering.md</code></p>
+        <p>5 min individual · round-robin discussion · zero-install alternative is the Sentry UI itself.</p>
+      </div>
+    </div>
   </section>
 
-  <section class="slide" id="slide-11">
-    <span class="timecode">12:00–13:00</span>
-    <h2>Exercise</h2>
-    <h1>Hidden quote bug triage</h1>
-    <ul>
-      <li>Trigger scenario <code>quote-bug-1</code> from the Angular UI</li>
-      <li>Find the issue in Sentry — fingerprint, owners, frequency</li>
-      <li>Walk the trace to the Spring span that failed</li>
-      <li>Open the relevant exercise under <code>course-materials/exercises/</code></li>
-      <li>Capture: what would you alert on in production?</li>
-    </ul>
+  <!-- ========================================================== -->
+  <!-- 10:10 – 11:00  1.2 Projects / SDK / privacy                -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-11">
+    <span class="timecode">10:10 – 11:00</span>
+    <h1>1.2 Projekty, SDK, custom context, prywatność</h1>
+    <p class="lede">Design the configuration so the first 100 production events arrive useful and non-sensitive — not the other way around.</p>
   </section>
 
   <section class="slide" id="slide-12">
-    <span class="timecode">13:00–13:30</span>
-    <h1>Lunch</h1>
-    <p class="lede">Back at 13:30. The survey reminder will pop on your screen.</p>
+    <h2>Configuration anchors</h2>
+    <h1>DSN, environment, release, sample rate</h1>
+    <ul>
+      <li><strong>DSN</strong> — runtime, env var, never hard-coded in mobile binaries you cannot rotate quickly.</li>
+      <li><strong>environment</strong> — <code>training</code> today; in real life <code>production</code>, <code>staging</code>, <code>preview</code>, <code>development</code>.</li>
+      <li><strong>release</strong> — immutable build identifier, e.g. <code>angular@&lt;short-sha&gt;</code>. Same value embedded at build time and used to upload source artifacts.</li>
+      <li><strong>tracesSampleRate</strong> — <code>1.0</code> for training, target <code>0.05–0.20</code> in prod for cost.</li>
+      <li><strong>sendDefaultPii</strong> — default <code>false</code> for regulated stacks. Opt in only after a data review.</li>
+    </ul>
   </section>
 
   <section class="slide" id="slide-13">
-    <span class="timecode">13:30</span>
-    <h2>Mid-day survey</h2>
-    <h1>Two minutes, real feedback</h1>
-    <p>Please open <a href="https://sages.link/848961" target="_blank" rel="noopener">https://sages.link/848961</a> and share what's landing and what isn't.</p>
+    <h2>Privacy baseline <span class="pri">SURVEY</span></h2>
+    <h1>Data scrubbing — at SDK and at project level</h1>
     <ul>
-      <li>It shapes the afternoon — pacing, depth, exercises</li>
-      <li>Anonymous; one response per attendee</li>
-      <li>A banner will pop up here at 13:30 as a backup</li>
+      <li><strong>SDK side</strong>: <code>beforeSend</code> / <code>beforeBreadcrumb</code> to strip request bodies, tokens, postal codes, PESEL-shaped fields.</li>
+      <li><strong>Project side</strong>: Settings → Security &amp; Privacy → data scrubbers, sensitive fields, regex rules.</li>
+      <li>Replay: <code>maskAllText: true</code>, <code>blockAllMedia: true</code> are our defaults — already wired in <code>apps/angular/src/main.ts</code>.</li>
+      <li>Android: <code>options.isSendDefaultPii = false</code>; never log PESEL/postal code; demo this in <code>SentryDemoApplication.kt</code>.</li>
+      <li>"Never weaken scrubbing to make a demo easier" — this is the only hill we die on today.</li>
     </ul>
   </section>
 
   <section class="slide" id="slide-14">
-    <span class="timecode">13:30–14:30</span>
-    <h2>Releases</h2>
-    <h1>Source maps, source context, symbolication</h1>
+    <h2>Custom context — what to add, what to never add <span class="pri">SURVEY</span></h2>
+    <h1>Tags vs. extra vs. user vs. context</h1>
     <ul>
-      <li>One <code>release</code> per build; tie to a git SHA</li>
-      <li>Web: upload JS source maps via <code>sentry-cli releases</code></li>
-      <li>Android: R8/ProGuard mapping uploaded per build variant</li>
-      <li>iOS: dSYMs uploaded from CI, not from a dev laptop</li>
-      <li>Without symbols you have stack traces of nothing</li>
+      <li><strong>Tags</strong> — indexable, searchable, low-cardinality. Good: <code>coverage</code>, <code>vehicleType</code>, <code>riskBand</code>, <code>app.locale</code>. Bad: PESEL, request ID.</li>
+      <li><strong>Extra / context</strong> — high-cardinality blobs, not indexed. Good: parsed config, structured shape of the failing payload.</li>
+      <li><strong>User</strong> — pseudonymous ID, never email/phone for this audience.</li>
+      <li><strong>Breadcrumbs</strong> — automatic + manual narrative.</li>
+      <li><strong>Logs</strong> — structured key-value, correlated to event and trace. <code>Sentry.logger.info(Sentry.logger.fmt`...`, {...})</code>.</li>
     </ul>
   </section>
 
-  <section class="slide" id="slide-15">
-    <h2>CI / CD</h2>
-    <h1>Release job, scoped token</h1>
-    <ul>
-      <li>GitHub Actions job: create release, associate commits, upload artifacts, finalize</li>
-      <li><code>SENTRY_AUTH_TOKEN</code> stored as a repo / org secret</li>
-      <li>Token scope: <code>org:ci</code> + project release write</li>
-      <li>Rotate quarterly; never echo, never commit</li>
-      <li>Non-live Bitbucket / Jenkins examples in <code>course-materials/ci-cd/</code></li>
-    </ul>
+  <section class="slide trainer" id="slide-15">
+    <span class="timecode">10:10 – 11:00</span>
+    <h2>Trainer panel · Projects + privacy</h2>
+    <h1>Show the four projects, then the privacy switch</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/settings/projects/javascript-angular/" target="_blank" rel="noopener">javascript-angular settings</a>
+        <a href="https://devpowers.sentry.io/settings/projects/java-spring-boot/" target="_blank" rel="noopener">java-spring-boot settings</a>
+        <a href="https://devpowers.sentry.io/settings/projects/android/" target="_blank" rel="noopener">android settings</a>
+        <a href="https://devpowers.sentry.io/settings/projects/javascript-angular/security-and-privacy/" target="_blank" rel="noopener">Angular → Security &amp; Privacy</a>
+        <a href="https://devpowers.sentry.io/settings/projects/javascript-angular/keys/" target="_blank" rel="noopener">Angular → Client Keys (DSN rotation)</a>
+      </div>
+      <div class="card do">
+        <h3>CLI</h3>
+        <pre class="bash">sentry project list
+sentry project view devpowers/javascript-angular
+sentry project view devpowers/android</pre>
+        <p>Confirm the DSNs match the ones embedded in the apps.</p>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"Tags are <em>filters</em>, not <em>data</em>. If a value is unique per user, it's not a tag."</li>
+          <li>"Default to <code>send-default-pii=false</code>. Opt in field by field — never blanket on."</li>
+          <li>Reference: guide <code>07-privacy-data-scrubbing.md</code>.</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Exercise</h3>
+        <p><strong>Exercise 03</strong> — Add safe custom tags/context without leaking PII. Path: <code>course-materials/exercises/03-safe-context-privacy.md</code></p>
+      </div>
+    </div>
   </section>
 
-  <section class="slide" id="slide-16">
-    <span class="timecode">14:30–15:30</span>
-    <h2>Performance</h2>
-    <h1>Tracing, logs, Replay, profiling</h1>
-    <ul>
-      <li>Spans show what your code did; traces stitch them across services</li>
-      <li>Structured logs attached to the trace — searchable, correlated</li>
-      <li>Replay surfaces what the user did before the error</li>
-      <li>Profiling: function-level hotspots, no separate agent</li>
-      <li>Sampling is a cost lever — model it, don't guess it</li>
-    </ul>
+  <!-- ========================================================== -->
+  <!-- 11:00 – 11:15  Break                                       -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-16">
+    <span class="timecode">11:00 – 11:15</span>
+    <h1>Break · 15 min</h1>
+    <p class="lede">Wracamy o 11:15. The 11:00 banner will pop on its own — dismiss when you're back.</p>
   </section>
 
-  <section class="slide" id="slide-17">
-    <h2>Exercise</h2>
-    <h1>Distributed Angular → Spring trace</h1>
-    <ul>
-      <li>Hit the slow scenario, capture the full trace</li>
-      <li>Identify the bottleneck span — is it network, DB, or in-process?</li>
-      <li>Cross-check with the Spring logs in the same trace</li>
-      <li>Decide: what would <code>tracesSampleRate</code> be in prod and why?</li>
-    </ul>
+  <!-- ========================================================== -->
+  <!-- 11:15 – 12:00  Angular + Spring onboarding                 -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-17">
+    <span class="timecode">11:15 – 12:00</span>
+    <h1>Angular + Spring Boot 4 — onboarding na żywo</h1>
+    <p class="lede">Wizard vs manual install, DSN flow, verify event, and trace propagation from the browser through <code>/api/quotes</code>.</p>
   </section>
 
   <section class="slide" id="slide-18">
-    <span class="timecode">15:30–15:40</span>
-    <h1>Break</h1>
-    <p class="lede">Short one. Back at 15:40.</p>
+    <h2>The two install paths</h2>
+    <h1>Wizard now, manual when policy demands</h1>
+    <ul>
+      <li><strong>Angular wizard</strong>: <code>npx @sentry/wizard@latest -i sourcemaps --saas --org devpowers --project javascript-angular</code></li>
+      <li><strong>Manual</strong>: <code>npm i @sentry/angular</code> + <code>Sentry.init({...})</code> in <code>main.ts</code> + ErrorHandler/TraceService in <code>app.config.ts</code>. Exactly what is already in <code>apps/angular/</code>.</li>
+      <li><strong>Spring wizard</strong>: not interactive; manual is the path. Add <code>io.sentry:sentry-spring-boot-4-starter</code> + <code>io.sentry.jvm.gradle</code> plugin. Already wired in <code>apps/api-spring/build.gradle.kts</code>.</li>
+      <li><strong>DSN flow</strong>: build embeds DSN via env var; never commit it in mobile binaries; rotate by revoking the client key.</li>
+    </ul>
   </section>
 
   <section class="slide" id="slide-19">
-    <span class="timecode">15:40–16:15</span>
-    <h2>Operations</h2>
-    <h1>Alerts, trends, ownership, noise</h1>
+    <h2>PolicyLab architecture</h2>
+    <h1>Angular → /api/quotes → Spring → Sentry</h1>
     <ul>
-      <li>Issue alerts vs metric alerts — pick the right signal</li>
-      <li>Trends: regressions in p75 latency, not just error count</li>
-      <li>Ownership rules drive routing and on-call hand-off</li>
-      <li>Integrations: Jira / Bitbucket linking, two-way sync</li>
-      <li>Noise reduction: ignore, fingerprint, sample, suppress by release</li>
+      <li>Angular sends <code>POST /api/quotes</code> with optional <code>X-Demo-Scenario: normal|server-error|slow|validation|pii</code>.</li>
+      <li>Spring services the request, emits a custom span around pricing rules, and tags the transaction with <code>coverage</code> / <code>vehicleType</code> / <code>riskBand</code>.</li>
+      <li>Browser tracing propagates a W3C trace header → Spring's OpenTelemetry layer joins it → one trace in Sentry.</li>
+      <li>For 500s the request is captured as a Sentry issue tied to that trace.</li>
+      <li>For validation 4xx no issue is raised — that's correct (expected client outcome), only logged.</li>
     </ul>
   </section>
 
-  <section class="slide" id="slide-20">
-    <span class="timecode">16:15–16:40</span>
-    <h2>Mobile</h2>
-    <h1>Android diagnostics on Galaxy S24</h1>
+  <section class="slide trainer" id="slide-20">
+    <span class="timecode">11:15 – 12:00</span>
+    <h2>Trainer panel · Live onboarding</h2>
+    <h1>Boot the apps, fire the verify event</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open / run</h3>
+        <pre class="bash"># Angular
+cd apps/angular
+pnpm install
+pnpm exec ng serve
+# Open http://localhost:4200/ then click
+# "Test Sentry Error" and "Pobierz wycenę"</pre>
+        <pre class="bash"># Spring
+cd apps/api-spring
+$env:SENTRY_DSN="https://bf24f04f...@o4511...ingest.de.sentry.io/4511644672983120"
+$env:DEMO_SCENARIOS_ENABLED="true"
+./gradlew bootRun --no-daemon</pre>
+      </div>
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/issues/?project=4511646810570832" target="_blank" rel="noopener">Angular issues — wait for the verify event</a>
+        <a href="https://devpowers.sentry.io/issues/?project=4511644672983120" target="_blank" rel="noopener">Spring issues</a>
+        <a href="https://devpowers.sentry.io/explore/traces/?project=4511646810570832&project=4511644672983120" target="_blank" rel="noopener">Traces (cross-project)</a>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"<code>Sentry.init</code> goes <em>before</em> framework bootstrap. Always."</li>
+          <li>"The DSN here is the new <code>javascript-angular</code> project I created this morning — check <code>sentry-onboarding.md</code> for the canonical list."</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Check</h3>
+        <ul>
+          <li>One Angular error visible in Issues with <code>release=angular@0.1.0</code>.</li>
+          <li>"Pobierz wycenę" → one Spring transaction visible in Traces, joined to a browser trace.</li>
+          <li>If verify event fails: walk <code>course-materials/guides/setup-angular.md</code> "Common failures".</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 12:00 – 13:00  Hidden-bug triage exercise                  -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-21">
+    <span class="timecode">12:00 – 13:00</span>
+    <h1>Triage — the hidden PolicyLab quote bug</h1>
+    <p class="lede">Module 1.3 in practice: from a Sentry issue to a root-cause hypothesis using stack trace, breadcrumbs, tags, release, suspect commits.</p>
+  </section>
+
+  <section class="slide trainer" id="slide-22">
+    <span class="timecode">12:00 – 13:00</span>
+    <h2>Trainer panel · Hidden-bug exercise</h2>
+    <h1>Drive Exercise 02</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open</h3>
+        <p>Exercise: <code>course-materials/exercises/02-triage-hidden-quote-bug.md</code></p>
+        <a href="https://devpowers.sentry.io/issues/?project=4511644672983120&query=is%3Aunresolved" target="_blank" rel="noopener">Spring Issues — find the seeded "quote calculation" issue</a>
+        <a href="https://devpowers.sentry.io/issues/?project=4511646810570832&query=is%3Aunresolved" target="_blank" rel="noopener">Angular Issues — find the propagated trace</a>
+      </div>
+      <div class="card do">
+        <h3>CLI shortcuts</h3>
+        <pre class="bash">sentry issue list devpowers/java-spring-boot \
+  --query "quote" --limit 5
+sentry issue view &lt;id&gt;
+sentry issue explain &lt;id&gt;   # AI summary
+sentry trace view &lt;trace-id&gt;</pre>
+      </div>
+      <div class="card say">
+        <h3>Run order</h3>
+        <ul>
+          <li>5 min individual analysis — silence in Teams.</li>
+          <li>Round-robin: each participant names <em>one</em> evidence point and what it rules out.</li>
+          <li>Trainer reveals the trap — wrong coverage band rule.</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Success criteria</h3>
+        <ul>
+          <li>Identify the failing function + the offending input.</li>
+          <li>Name the release that introduced it.</li>
+          <li>Propose a one-line fix without leaking the postal code into Sentry.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 13:00 – 13:30  Lunch                                       -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-23">
+    <span class="timecode">13:00 – 13:30</span>
+    <h1>Lunch · 30 min</h1>
+    <p class="lede">Wracamy o 13:30. Banner about lunch fires at 13:00. Banner with the survey link fires at 13:30 — share it immediately on Teams.</p>
+  </section>
+
+  <section class="slide" id="slide-24">
+    <span class="timecode">13:30</span>
+    <h2>Ankieta — share now</h2>
+    <h1>Survey link, please fill before 14:00</h1>
+    <p class="lede">
+      <a href="https://sages.link/848961" target="_blank" rel="noopener">https://sages.link/848961</a>
+      ·
+      <a href="https://sages.link/848961/qrcode" target="_blank" rel="noopener">QR code</a>
+    </p>
     <ul>
-      <li>Live demo via the workshop Android app</li>
-      <li>Device mirroring through Android Studio — wired fallback ready</li>
-      <li>ANRs, native crashes, slow / frozen frames in one issue view</li>
-      <li>Release health: crash-free sessions per build</li>
-      <li>iOS sample referenced under <code>apps/ios-sentry-reference/</code></li>
+      <li>The banner will pop on its own at 13:30. Paste the link into Teams chat as well.</li>
+      <li>Open it on the projector for participants joining late.</li>
     </ul>
   </section>
 
-  <section class="slide" id="slide-21">
-    <span class="timecode">16:40–16:50</span>
-    <h2>AI assists</h2>
-    <h1>Seer, MCP, coding agents — supplements</h1>
+  <!-- ========================================================== -->
+  <!-- 13:30 – 14:30  1.4 Releases + source artifacts             -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-25">
+    <span class="timecode">13:30 – 14:30</span>
+    <h1>1.4 Releases, source maps, R8/ProGuard, dSYM</h1>
+    <p class="lede">The most expensive afternoon module in setup terms, but the one that unlocks "readable stack traces in prod" — directly tied to a survey priority.</p>
+  </section>
+
+  <section class="slide" id="slide-26">
+    <h2>Release contract</h2>
+    <h1>Build once, upload once, deploy once</h1>
     <ul>
-      <li>Seer: root-cause hypotheses + suggested fixes on real issues</li>
-      <li>Sentry MCP: query issues and traces from your editor agent</li>
-      <li>Coding agents: triage prompts, fix proposals, PR drafting</li>
-      <li>Treat AI as a force multiplier on top of the manual workflow</li>
+      <li>Pick <code>SENTRY_RELEASE</code> once — short commit SHA or immutable build ID. Same value across SDK init <strong>and</strong> source-artifact upload.</li>
+      <li>Order: choose release → build prod artifacts → create Sentry release → set commits → upload source maps/mappings/symbols → finalize → deploy → record deploy.</li>
+      <li>Source artifacts must be uploaded <em>before</em> events that need processing. Late uploads do not repair already-processed traces.</li>
+      <li>Never rebuild after upload — debug IDs would change and stack traces would silently mis-symbolicate.</li>
     </ul>
   </section>
 
-  <section class="slide" id="slide-22">
-    <span class="timecode">16:50–17:00</span>
-    <h2>Wrap up</h2>
-    <h1>Deployment checklist + Q&amp;A</h1>
+  <section class="slide" id="slide-27">
+    <h2>Per-platform artifact map</h2>
+    <h1>Different artifact for each runtime</h1>
+    <div class="cols">
+      <div>
+        <ul>
+          <li><strong>JavaScript / Angular</strong> — <code>.js.map</code> source maps with debug IDs. Generated by <code>ng build --source-map</code>. Upload via Sentry bundler plugin or <code>sentry-cli sourcemaps inject/upload</code>. Strip <code>.map</code> from deployable bundle.</li>
+          <li><strong>Spring / JVM</strong> — JVM source bundle uploaded by the Sentry Gradle plugin (<code>io.sentry.jvm.gradle</code>). Gives source context inside stack frames.</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li><strong>Android</strong> — R8/ProGuard mapping <span class="pri">SURVEY</span>. The Sentry Android Gradle plugin uploads it per release. Without it the prod stack is unreadable.</li>
+          <li><strong>NDK / native</strong> — debug symbols uploaded via <code>sentry-cli debug-files upload</code>.</li>
+          <li><strong>iOS</strong> — <code>.dSYM</code> uploaded by the Xcode build phase the wizard adds.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="slide-28">
+    <h2>Android R8/ProGuard — explicit walkthrough <span class="pri">SURVEY</span></h2>
+    <h1>"Odzyskiwanie pełnych logów z Android bez minify"</h1>
     <ul>
-      <li>DSN, release, environment set per app per stage</li>
-      <li>Source maps / mapping / dSYMs uploaded from CI</li>
-      <li>Privacy defaults verified: no PII unless intentional</li>
-      <li>Alerts wired to the right team, not a black hole</li>
-      <li>Sampling + retention chosen with cost in mind</li>
+      <li><code>release</code> build minifies and obfuscates with R8 → stack frames become <code>a.b.c</code>.</li>
+      <li>The Sentry Android Gradle plugin (already in <code>apps/android/app/build.gradle.kts</code>) generates a mapping file per build and uploads it tagged by <code>versionName+versionCode</code> when <code>SENTRY_AUTH_TOKEN</code> is exported.</li>
+      <li>Sentry de-obfuscates on the server. The stack you see in the Issue is the original Kotlin/Java.</li>
+      <li>If you don't see real names in prod: check that the build did <em>not</em> regenerate the mapping after upload, and that the <code>versionName+versionCode</code> in the event matches the uploaded mapping.</li>
+      <li>Verification: <code>sentry proguard upload</code> for a manual reupload from a clean machine.</li>
     </ul>
   </section>
 
-  <section class="slide title" id="slide-23">
-    <div class="kicker">Thank you</div>
-    <h1>Go ship safer software.</h1>
-    <p class="lede">Survey: <a href="https://sages.link/848961" target="_blank" rel="noopener">https://sages.link/848961</a></p>
+  <section class="slide" id="slide-29">
+    <h2>CI/CD — two CLIs, do not confuse</h2>
+    <h1><code>sentry-cli</code> (pipeline) vs. <code>sentry</code> (you)</h1>
+    <ul>
+      <li><strong><code>sentry-cli</code></strong> — narrow, stable, designed for pipelines. Auth = org token scoped <code>org:ci</code>. Used in <code>.github/workflows/release.yml</code>, Bitbucket Pipelines, Jenkinsfile.</li>
+      <li><strong><code>sentry</code></strong> (cli.sentry.dev) — broad, interactive, for developers and AI agents. Auth = your user via <code>sentry auth login</code>. Use it at your desk; do <em>not</em> bake it into builds.</li>
+      <li>CI token = source-map upload, release creation, code mappings. That's it.</li>
+      <li>Dev/agent CLI = read everything, mutate carefully. Your user permissions apply.</li>
+      <li>Reference: <code>course-materials/guides/09-seer-mcp.md</code> § "Two Sentry CLIs".</li>
+    </ul>
+  </section>
+
+  <section class="slide trainer" id="slide-30">
+    <span class="timecode">13:30 – 14:30</span>
+    <h2>Trainer panel · Releases live</h2>
+    <h1>Show a release, its commits, and the trend after a fix <span class="pri">SURVEY</span></h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/releases/?project=4511646810570832" target="_blank" rel="noopener">Angular releases</a>
+        <a href="https://devpowers.sentry.io/releases/?project=4511644672983120" target="_blank" rel="noopener">Spring releases</a>
+        <a href="https://devpowers.sentry.io/releases/?project=4511645677453392" target="_blank" rel="noopener">Android releases</a>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026/actions" target="_blank" rel="noopener">GitHub Actions runs</a>
+      </div>
+      <div class="card do">
+        <h3>CLI</h3>
+        <pre class="bash"># dev/agent CLI — read state
+sentry release list devpowers/java-spring-boot
+sentry release view api-spring@&lt;sha&gt;
+
+# CI CLI — the actual upload flow
+$env:SENTRY_AUTH_TOKEN="sntrys_..."
+sentry-cli releases new "angular@$(git rev-parse --short HEAD)"
+sentry-cli releases set-commits "$REL" --auto
+sentry-cli sourcemaps inject dist/
+sentry-cli sourcemaps upload --org devpowers `
+  --project javascript-angular --release "$REL" dist/
+sentry-cli releases finalize "$REL"</pre>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"This sequence is what <code>.github/workflows/release.yml</code> automates. Read it after the workshop."</li>
+          <li>"Buggy release vs. fixed release — observe the trend line bending after the fix release timestamp."</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Exercise</h3>
+        <p><strong>Exercise 04</strong> — Release trend before/after fix. Path: <code>course-materials/exercises/04-source-artifacts-release-trend.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 14:30 – 15:30  1.5 Tracing / logs / Replay                 -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-31">
+    <span class="timecode">14:30 – 15:30</span>
+    <h1>1.5 Tracing, logi i Replay jako kontekst</h1>
+    <p class="lede">From "an exception" to "the user clicked here, the browser sent that, the backend was slow on this span, the DB returned that" — one trace.</p>
+  </section>
+
+  <section class="slide" id="slide-32">
+    <h2>Tracing model</h2>
+    <h1>Transaction → spans → propagation <span class="pri">SURVEY</span></h1>
+    <ul>
+      <li>A <strong>transaction</strong> is one user-facing operation (route load, API call, message handler). Contains <strong>spans</strong>.</li>
+      <li><strong>Trace propagation</strong>: W3C <code>traceparent</code> + Sentry <code>sentry-trace</code> + <code>baggage</code> headers. Angular's <code>tracePropagationTargets</code> includes <code>/^\/api/</code> — that is why Spring joins the trace.</li>
+      <li>Spring's OpenTelemetry agent emits HTTP spans automatically. Custom spans on pricing rules already exist in <code>SentryQuoteTelemetry</code>.</li>
+      <li>You see the whole waterfall in one place — frontend nav, fetch, backend handler, DB call.</li>
+      <li>Sampling: <code>tracesSampleRate=1.0</code> today, target <code>0.05–0.20</code> in prod. Errors get a transaction by default.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-33">
+    <h2>Structured logs <span class="pri">SURVEY</span></h2>
+    <h1>"Dołączanie customowych pól do logów"</h1>
+    <ul>
+      <li>Sentry Logs is the structured-log surface inside Sentry, correlated to issues and traces.</li>
+      <li>Angular: <code>Sentry.logger.info(Sentry.logger.fmt`User ${id} clicked`, { action: 'click' })</code>.</li>
+      <li>Spring: <code>sentry.logs.enabled=true</code> already set; <code>LOGGER.info("Quote created: coverage={}, riskBand={}", c, r)</code> is what you saw in <code>QuoteController</code>.</li>
+      <li>Android: same Logback-style API via <code>SentryAndroid</code>.</li>
+      <li>Custom fields ride as structured key-value pairs — searchable in the UI, filterable by tag.</li>
+      <li>Privacy reminder: structured ≠ free pass to log PII. Same scrubbing rules apply.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-34">
+    <h2>Session Replay</h2>
+    <h1>What the user actually saw, with masking</h1>
+    <ul>
+      <li>10% of sessions sampled, 100% on error — already in <code>main.ts</code>.</li>
+      <li><code>maskAllText: true</code> + <code>blockAllMedia: true</code> by default. Unmask explicitly with CSS class — never the other way around.</li>
+      <li>Replay link appears in the Issue right rail. One click → DOM playback aligned to the moment of error.</li>
+      <li>Cost model: per-session storage. Sample low in prod; rely on the on-error trigger.</li>
+    </ul>
+  </section>
+
+  <section class="slide trainer" id="slide-35">
+    <span class="timecode">14:30 – 15:30</span>
+    <h2>Trainer panel · Trace live</h2>
+    <h1>Follow one request, end-to-end</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/explore/traces/?project=4511646810570832&project=4511644672983120" target="_blank" rel="noopener">Traces — Angular + Spring</a>
+        <a href="https://devpowers.sentry.io/insights/frontend/?project=4511646810570832" target="_blank" rel="noopener">Frontend insights</a>
+        <a href="https://devpowers.sentry.io/insights/backend/?project=4511644672983120" target="_blank" rel="noopener">Backend insights</a>
+        <a href="https://devpowers.sentry.io/replays/?project=4511646810570832" target="_blank" rel="noopener">Replays</a>
+        <a href="https://devpowers.sentry.io/explore/logs/?project=4511646810570832&project=4511644672983120" target="_blank" rel="noopener">Logs</a>
+      </div>
+      <div class="card do">
+        <h3>CLI</h3>
+        <pre class="bash">sentry trace list --period 1h
+sentry trace view &lt;trace-id&gt;
+sentry trace logs &lt;trace-id&gt;
+sentry span list &lt;trace-id&gt;
+sentry log list devpowers/java-spring-boot --period 30m
+sentry replay list --period 1d</pre>
+      </div>
+      <div class="card say">
+        <h3>Demo flow</h3>
+        <ol>
+          <li>Click "Wolna wycena" in Angular UI.</li>
+          <li>Refresh Traces list. Open the new trace.</li>
+          <li>Show the slow span on Spring side.</li>
+          <li>Show the correlated logs and breadcrumbs.</li>
+        </ol>
+      </div>
+      <div class="card check">
+        <h3>Exercise</h3>
+        <p><strong>Exercise 05</strong> — Distributed trace, identify the slow span. Path: <code>course-materials/exercises/05-distributed-trace.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 15:30 – 15:40  Break                                       -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-36">
+    <span class="timecode">15:30 – 15:40</span>
+    <h1>Krótka przerwa · 10 min</h1>
+    <p class="lede">Banner fires at 15:30. Final block is alerts + Android + AI + wrap-up.</p>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 15:40 – 16:15  1.6 Alerts / Jira / Bitbucket               -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-37">
+    <span class="timecode">15:40 – 16:15</span>
+    <h1>1.6 Monitory, alerty i redukcja szumu</h1>
+    <p class="lede">Match alerts to the way the team actually receives interruption — Teams, Jira, on-call — and avoid the most common alert-fatigue trap.</p>
+  </section>
+
+  <section class="slide" id="slide-38">
+    <h2>Alert types in Sentry</h2>
+    <h1>Issue, metric, anomaly, uptime, cron</h1>
+    <ul>
+      <li><strong>Issue alerts</strong> — first-seen, regression, frequency spike per environment.</li>
+      <li><strong>Metric alerts</strong> — error rate, p95 transaction duration, span throughput.</li>
+      <li><strong>Anomaly</strong> — automatic baseline; useful for noisy services where thresholds drift.</li>
+      <li><strong>Uptime monitor</strong> — synthetic ping on a public endpoint.</li>
+      <li><strong>Cron</strong> — heartbeat from a scheduled job; pages you when it stops checking in.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-39">
+    <h2>Jira + Bitbucket integration <span class="pri audience">JIRA WORKFLOW</span></h2>
+    <h1>Two-way link, not a copy-paste workflow</h1>
+    <ul>
+      <li>Issue alert rule → "Create Jira ticket" action. Sentry stamps the issue with the Jira key; Jira ticket links back to the Sentry issue.</li>
+      <li>Bitbucket integration provides commit linking + suspect-commit detection on PRs.</li>
+      <li>Ownership rules: regex/path-based mapping of code → team → Jira board.</li>
+      <li>For a regulated stack: keep Jira as the system of record; Sentry feeds it. Don't try to use Sentry comments as workflow.</li>
+      <li>For the workshop org we do not enable Jira/Bitbucket integrations live — we describe the wiring instead.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-40">
+    <h2>Noise reduction playbook</h2>
+    <h1>How to <em>not</em> send a 3 AM page for nothing</h1>
+    <ul>
+      <li>Always scope alerts to <code>environment:production</code>. Never let a staging error wake on-call.</li>
+      <li>Threshold: <em>new issue in last 1h with &gt;5 users affected</em> beats <em>any error happens</em>.</li>
+      <li>Throttle: per-rule cooldown to avoid alert storms during incidents.</li>
+      <li>Ownership routing: page the team that owns the file, not "the channel".</li>
+      <li>Inbound filters and <code>ignoreErrors</code> for known-noisy patterns (browser extensions, dead bots).</li>
+      <li>Quarterly alert-rule review — if an alert never fires <em>or</em> is always dismissed, kill it.</li>
+    </ul>
+  </section>
+
+  <section class="slide trainer" id="slide-41">
+    <span class="timecode">15:40 – 16:15</span>
+    <h2>Trainer panel · Alerts</h2>
+    <h1>Design one good alert, kill one bad one</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open in browser</h3>
+        <a href="https://devpowers.sentry.io/alerts/rules/?project=4511646810570832" target="_blank" rel="noopener">Angular alert rules</a>
+        <a href="https://devpowers.sentry.io/alerts/rules/?project=4511644672983120" target="_blank" rel="noopener">Spring alert rules</a>
+        <a href="https://devpowers.sentry.io/settings/integrations/" target="_blank" rel="noopener">Integrations (Jira, Bitbucket, Slack)</a>
+        <a href="https://devpowers.sentry.io/issues/alerts/" target="_blank" rel="noopener">Alert history</a>
+      </div>
+      <div class="card do">
+        <h3>CLI</h3>
+        <pre class="bash">sentry alert issues list devpowers/javascript-angular
+sentry alert metrics list devpowers/javascript-angular</pre>
+      </div>
+      <div class="card say">
+        <h3>Say</h3>
+        <ul>
+          <li>"The most common alert-rule sin: <em>send anywhere</em> on <em>any</em> error. We will rewrite one together."</li>
+          <li>Map participant Jira flow: alert → Jira → assignee → branch → PR → release → trend after fix.</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Exercise</h3>
+        <p><strong>Exercise 06</strong> — Design a <code>[TRAINING participant-N]</code> alert rule and avoid alert fatigue. Path: <code>course-materials/exercises/06-alert-design.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 16:15 – 16:40  Android / mobile                            -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-42">
+    <span class="timecode">16:15 – 16:40</span>
+    <h1>Android — pełne logi, filtrowanie po urządzeniu, feedback</h1>
+    <p class="lede">Three survey priorities converge here: R8 logs, device filtering, custom fields. Live demo on the Galaxy S24 Ultra, with the AI Studio app as a fallback.</p>
+  </section>
+
+  <section class="slide" id="slide-43">
+    <h2>Device filtering <span class="pri">SURVEY</span></h2>
+    <h1>"Filtrowanie po konkretnych urządzeniach"</h1>
+    <ul>
+      <li>Sentry auto-tags every event with device model, manufacturer, OS, OS version, screen, locale, battery, network type.</li>
+      <li>Issue list filter: <code>device.model:"SM-S928B"</code> or <code>os.name:Android os.version:&gt;=15</code>.</li>
+      <li>Cross-issue analysis in Explore (Discover): aggregate by <code>device.model</code> → see which devices dominate a specific exception.</li>
+      <li>If you ship a per-OEM hotfix, an alert scoped <code>device.manufacturer:samsung</code> can fire it.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-44">
+    <h2>Custom fields on Android <span class="pri">SURVEY</span></h2>
+    <h1>"Customowe pola w logach"</h1>
+    <ul>
+      <li>Already wired in <code>SentryDemoApplication.kt</code>: global tags <code>course-id</code>, <code>developer-level</code>, <code>target-organization</code>, <code>host-locale</code>.</li>
+      <li>Per-event scope: <code>Sentry.configureScope { it.setTag("policy.id", id); it.setContext("vehicle", mapOf(...)) }</code>.</li>
+      <li>Per-thread <code>configureScope</code> in coroutines — show how scopes propagate across <code>withContext</code>.</li>
+      <li>Logs API: <code>Sentry.logger().info("Quote requested", mapOf("scenario" to scenario))</code>.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-45">
+    <h2>User feedback + Replay on mobile</h2>
+    <h1>From "it crashed" to "this is what happened"</h1>
+    <ul>
+      <li>Feedback widget collects a user comment + email opt-in attached to the event.</li>
+      <li>Mobile Replay records UI events; masking defaults apply just like web.</li>
+      <li>Galaxy S24 Ultra mirrored in Android Studio Device Mirroring; scrcpy is the cross-OS fallback; AI Studio link works for participants without USB access.</li>
+      <li>Privacy: Do Not Disturb on, hide notification previews, no personal apps visible during share.</li>
+    </ul>
+  </section>
+
+  <section class="slide trainer" id="slide-46">
+    <span class="timecode">16:15 – 16:40</span>
+    <h2>Trainer panel · Android live</h2>
+    <h1>S24 demo + Exercise 07</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open / connect</h3>
+        <a href="https://devpowers.sentry.io/issues/?project=4511645677453392" target="_blank" rel="noopener">Android issues</a>
+        <a href="https://devpowers.sentry.io/explore/discover/homepage/?project=4511645677453392" target="_blank" rel="noopener">Explore — aggregate by device.model</a>
+        <a href="https://ai.studio/apps/f3f80ee8-2b62-41a3-84bb-79d5f97f8558" target="_blank" rel="noopener">AI Studio app (participant fallback)</a>
+        <p>USB / wireless ADB pre-checked. scrcpy ready in case mirroring fails.</p>
+      </div>
+      <div class="card do">
+        <h3>CLI</h3>
+        <pre class="bash">sentry issue list devpowers/android \
+  --query "device.model:SM-S928B" --limit 5
+sentry event view &lt;event-id&gt;
+# ProGuard reupload if symbolication breaks:
+sentry proguard upload --org devpowers \
+  --project android mapping.txt</pre>
+      </div>
+      <div class="card say">
+        <h3>Demo</h3>
+        <ol>
+          <li>Trigger an exception from the app's Sentry sandbox screen.</li>
+          <li>Show it in Issues with full Kotlin stack + S24 device tags.</li>
+          <li>Filter <code>device.model</code> to prove tag indexing.</li>
+          <li>Submit user feedback; show the link on the Issue.</li>
+        </ol>
+      </div>
+      <div class="card check">
+        <h3>Exercise</h3>
+        <p><strong>Exercise 07</strong> — Filter Android events by device + release + custom config. Path: <code>course-materials/exercises/07-android-filtering-feedback.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 16:40 – 16:55  1.7 AI / Seer / MCP / dev CLI               -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-47">
+    <span class="timecode">16:40 – 16:55</span>
+    <h1>1.7 AI w Sentry — Seer, MCP, dev CLI</h1>
+    <p class="lede">Short module by design. The point is to make AI a <em>supplement</em>, not the primary workflow — survey put Sentry-AI interest at ~3.3/5.</p>
+  </section>
+
+  <section class="slide" id="slide-48">
+    <h2>Seer</h2>
+    <h1>Treat root-cause AI as a hypothesis</h1>
+    <ul>
+      <li>Seer reads the issue, the linked code, and recent events; proposes a root cause and sometimes a patch.</li>
+      <li>Workflow: write <em>your</em> one-line hypothesis first, then ask Seer to explain evidence and uncertainty.</li>
+      <li>Verify cited frames, spans, and release against the actual event before trusting.</li>
+      <li>Never accept a generated patch that broadens data collection or hides exceptions.</li>
+      <li>Right rail on any Issue — same place every time.</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="slide-49">
+    <h2>Sentry MCP + dev CLI</h2>
+    <h1>Your IDE/agent talks to Sentry; you still drive</h1>
+    <ul>
+      <li><strong>Sentry MCP</strong> (mcp.sentry.dev) — Claude / Cursor / JetBrains Junie / Zed can query issues, traces, releases through a tool interface.</li>
+      <li>Auth = least-privilege, short-lived org-owned token; scope to specific projects.</li>
+      <li>Good prompt: "In <code>java-spring-boot</code> staging, summarize evidence for issue <code>PL-API-12</code>. Separate facts from hypotheses. Exclude request body."</li>
+      <li>Bad prompt: "Fix production."</li>
+      <li><strong><code>sentry</code> dev CLI</strong>: <code>sentry issue explain &lt;id&gt;</code>, <code>sentry issue plan &lt;id&gt;</code> are MCP-backed AI features at the terminal.</li>
+      <li>Reference: <code>course-materials/guides/09-seer-mcp.md</code>.</li>
+    </ul>
+  </section>
+
+  <!-- ========================================================== -->
+  <!-- 16:55 – 17:00  1.8 Wrap-up                                 -->
+  <!-- ========================================================== -->
+  <section class="slide section" id="slide-50">
+    <span class="timecode">16:55 – 17:00</span>
+    <h1>1.8 Checklista wdrożeniowa</h1>
+    <p class="lede">Walk out with five concrete actions per participant, mapped to their existing Jira/Bitbucket workflow.</p>
+  </section>
+
+  <section class="slide" id="slide-51">
+    <h2>Production checklist</h2>
+    <h1>Minimum standard for the next Sentry project you start</h1>
+    <ul>
+      <li>Project per app/service. Environments: <code>production</code>, <code>staging</code>, optional <code>preview</code>.</li>
+      <li>SDK init in env-var-driven config; <code>release</code> = build SHA; <code>sendDefaultPii=false</code>; scrubbing reviewed.</li>
+      <li>CI uploads source maps / mapping / dSYM with org token (<code>org:ci</code>) — never user token.</li>
+      <li>One issue alert per environment per priority tier, routed to ownership team via Jira.</li>
+      <li>Quarterly review of issue groupings, alert rules, sampling, costs.</li>
+    </ul>
+  </section>
+
+  <section class="slide trainer" id="slide-52">
+    <span class="timecode">16:55 – 17:00</span>
+    <h2>Trainer panel · Closing</h2>
+    <h1>Wrap, exercise 08, Q&amp;A, next steps</h1>
+    <div class="panel-grid">
+      <div class="card do">
+        <h3>Open</h3>
+        <p>Exercise: <code>course-materials/exercises/08-final-audit.md</code></p>
+        <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026" target="_blank" rel="noopener">Workshop repo</a>
+        <a href="https://sages.link/848961" target="_blank" rel="noopener">Survey (one more reminder)</a>
+      </div>
+      <div class="card say">
+        <h3>Closing words</h3>
+        <ul>
+          <li>"Pick five changes from the checklist that map to your nearest sprint."</li>
+          <li>"Sentry replaces nothing in your Jira/Bitbucket workflow — it gives the first step better evidence."</li>
+          <li>"Keep using JetBrains IDE Sentry plugin + MCP for ongoing learning."</li>
+        </ul>
+      </div>
+      <div class="card check">
+        <h3>Followups to send tomorrow</h3>
+        <ul>
+          <li>Repo URL + slides + recording link.</li>
+          <li>Trainer-runbook PDF + 5-action checklist template.</li>
+          <li>Revoke participant memberships per the agreed trial.</li>
+          <li>Disable participant-created alerts.</li>
+        </ul>
+      </div>
+      <div class="card do">
+        <h3>Final CLI sweep</h3>
+        <pre class="bash">sentry alert issues list devpowers/javascript-angular
+sentry alert issues list devpowers/java-spring-boot
+sentry alert issues list devpowers/android</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide title" id="slide-53">
+    <div class="kicker">Dziękuję — questions?</div>
+    <h1>Idziemy ulepszać produkcję.</h1>
+    <p class="lede">
+      Survey · <a href="https://sages.link/848961" target="_blank" rel="noopener">https://sages.link/848961</a>
+    </p>
     <div class="meta">
-      Repo: &lt;workshop repo URL&gt; · Slides under <code>course-materials/slides/</code><br/>
-      Questions: lucas.matuszewski@gmail.com
+      Repo: <a href="https://github.com/LucasMatuszewski/sentry-course-06-2026" target="_blank" rel="noopener">github.com/LucasMatuszewski/sentry-course-06-2026</a><br/>
+      Contact: lucas.matuszewski@gmail.com
     </div>
   </section>
 
@@ -552,7 +1208,7 @@
 
 <div class="footer">
   <div id="counter">1 / 1</div>
-  <div class="hint">&larr; / &rarr; navigate &middot; F fullscreen &middot; P print</div>
+  <div class="hint">&larr; / &rarr; navigate &middot; F fullscreen &middot; P print &middot; #slide-N deep link</div>
 </div>
 
 <div id="progress"><div></div></div>
@@ -643,8 +1299,6 @@
   function warsawNow() {
     if (overrideClock && /^\d{1,2}:\d{2}$/.test(overrideClock)) {
       var parts = overrideClock.split(":");
-      var d = new Date();
-      // Build a Warsaw-local representation for "today" using the override
       return { h: parseInt(parts[0], 10), m: parseInt(parts[1], 10), key: "override" };
     }
     var hhmm = new Date().toLocaleTimeString("pl-PL", {
@@ -667,10 +1321,10 @@
 
   // ----- Reminder banners -----
   var REMINDERS = [
-    { id: "1100", h: 11, m: 0,  title: "Break",  msg: "Przerwa 15 minut. Wracamy o 11:15." },
-    { id: "1300", h: 13, m: 0,  title: "Lunch",  msg: "Lunch. Wracamy o 13:30." },
-    { id: "1330", h: 13, m: 30, title: "Ankieta", msg: 'Wypełnij ankietę: <a href="https://sages.link/848961" target="_blank" rel="noopener">https://sages.link/848961</a>' },
-    { id: "1530", h: 15, m: 30, title: "Break",  msg: "Krótka przerwa. Wracamy o 15:40." }
+    { id: "1100", h: 11, m: 0,  title: "Przerwa",  msg: "Przerwa 15 minut. Wracamy o 11:15." },
+    { id: "1300", h: 13, m: 0,  title: "Lunch",    msg: "Lunch. Wracamy o 13:30." },
+    { id: "1330", h: 13, m: 30, title: "Ankieta",  msg: 'Wypełnij ankietę i wklej link na Teams: <a href="https://sages.link/848961" target="_blank" rel="noopener">https://sages.link/848961</a>' },
+    { id: "1530", h: 15, m: 30, title: "Przerwa",  msg: "Krótka przerwa. Wracamy o 15:40." }
   ];
 
   function dateKey() {
@@ -705,7 +1359,6 @@
     for (var i = 0; i < REMINDERS.length; i++) {
       var r = REMINDERS[i];
       if (isDismissed(r.id)) continue;
-      // Fire if current minute is >= reminder minute and within 60 minutes after
       var nowMin = t.h * 60 + t.m;
       var remMin = r.h * 60 + r.m;
       if (nowMin >= remMin && nowMin < remMin + 60) {
