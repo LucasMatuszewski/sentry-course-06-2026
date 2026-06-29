@@ -278,7 +278,7 @@ Alternatively, you can also set up the SDK manually, by following the [manual se
 If you already have the configuration for Sentry in your application, and just need this project's (android) DSN, you can find it below:
 
 ```
-https://60c377bf4862a6a8f0073462e41464e6@o4511643784511488.ingest.de.sentry.io/4511645099098192
+https://9e8d71703ab027cf8474da46ffc220cd@o4511643784511488.ingest.de.sentry.io/4511645677453392
 ```
 (DSN for example course project in DevPowers organization)
 
@@ -318,7 +318,7 @@ import { AppComponent } from './app/app.component';
 // import { AppModule } from "./app/app.module";
 
 Sentry.init({
-  dsn: "https://841bd186c6b01b7bfceaf73109609cb4@o4511643784511488.ingest.de.sentry.io/4511645145890896",
+  dsn: "https://05129b1196d6b979d74c876edc341744@o4511643784511488.ingest.de.sentry.io/4511646810570832",
   dataCollection: {
     // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
     // https://docs.sentry.io/platforms/javascript/guides/angular/configuration/options/#dataCollection

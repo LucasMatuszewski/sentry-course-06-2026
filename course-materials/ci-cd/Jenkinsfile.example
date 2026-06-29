@@ -1,0 +1,77 @@
+// NON-LIVE TRAINING REFERENCE.
+// Fictional PolicyLab values; no deployment; do not run unchanged.
+// Official Jenkins/Sentry references checked 2026-06-29:
+// https://www.jenkins.io/doc/book/pipeline/syntax/
+// https://www.jenkins.io/doc/pipeline/steps/credentials-binding/
+// https://docs.sentry.io/api/permissions/
+
+pipeline {
+  agent { label 'non-live-reference-agent' }
+
+  options {
+    disableConcurrentBuilds()
+    skipDefaultCheckout(false)
+    timestamps()
+  }
+
+  environment {
+    SENTRY_ORG = 'policylab-workshop'
+    SENTRY_PROJECT = 'policylab-web'
+  }
+
+  stages {
+    stage('Build and test') {
+      steps {
+        sh '''
+          set -eu
+          npm ci
+          npm test -- --watch=false
+          SENTRY_RELEASE="policylab-web@${GIT_COMMIT}" \
+            npm run build -- --configuration production
+        '''
+      }
+    }
+
+    stage('Create release and upload source artifacts') {
+      steps {
+        withCredentials([
+          string(credentialsId: 'sentry-org-ci-token', variable: 'SENTRY_AUTH_TOKEN')
+        ]) {
+          sh '''
+            set -eu
+            set +x
+            export SENTRY_RELEASE="policylab-web@${GIT_COMMIT}"
+
+            npx --yes @sentry/cli@latest releases new "$SENTRY_RELEASE"
+            npx --yes @sentry/cli@latest releases set-commits \
+              "$SENTRY_RELEASE" --auto --ignore-missing
+            npx --yes @sentry/cli@latest sourcemaps inject dist/policylab-web
+            npx --yes @sentry/cli@latest sourcemaps upload \
+              --org "$SENTRY_ORG" \
+              --project "$SENTRY_PROJECT" \
+              --release "$SENTRY_RELEASE" \
+              dist/policylab-web
+            npx --yes @sentry/cli@latest releases finalize "$SENTRY_RELEASE"
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      // Reference only: choose retention/fingerprinting policy before enabling.
+      archiveArtifacts artifacts: 'dist/policylab-web/**',
+        fingerprint: false,
+        allowEmptyArchive: true
+    }
+  }
+}
+
+// Intentionally absent:
+// - a real agent/image, deployment target, or live credential;
+// - deployment and production approval;
+// - release deploy recording before an actual deploy.
+//
+// Production adaptation must pin the approved Sentry CLI version, restrict
+// credential scope, isolate untrusted builds, and review artifact exposure.

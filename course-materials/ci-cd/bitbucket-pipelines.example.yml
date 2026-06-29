@@ -1,0 +1,47 @@
+# NON-LIVE TRAINING REFERENCE.
+# Fictional PolicyLab values; no deployment; do not run unchanged.
+# Validate CLI image/version, output path, permissions, and branch policy first.
+#
+# Required Bitbucket secured repository/deployment variable:
+#   SENTRY_AUTH_TOKEN
+# Non-secret variables may be repository variables or explicit safe values:
+#   SENTRY_ORG, SENTRY_PROJECT
+#
+# Official references checked 2026-06-29:
+# https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
+# https://support.atlassian.com/bitbucket-cloud/docs/use-artifacts-in-steps/
+# https://docs.sentry.io/api/permissions/
+
+image: node:22
+
+pipelines:
+  custom:
+    non-live-sentry-reference:
+      - step:
+          name: Build and validate PolicyLab web
+          caches:
+            - node
+          script:
+            - test -n "$SENTRY_AUTH_TOKEN"
+            - test -n "$SENTRY_ORG"
+            - test -n "$SENTRY_PROJECT"
+            - export SENTRY_RELEASE="policylab-web@${BITBUCKET_COMMIT}"
+            - npm ci
+            - npm test -- --watch=false
+            - npm run build -- --configuration production
+            - npx --yes @sentry/cli@latest releases new "$SENTRY_RELEASE"
+            - npx --yes @sentry/cli@latest releases set-commits "$SENTRY_RELEASE" --auto --ignore-missing
+            - npx --yes @sentry/cli@latest sourcemaps inject dist/policylab-web
+            - npx --yes @sentry/cli@latest sourcemaps upload --org "$SENTRY_ORG" --project "$SENTRY_PROJECT" --release "$SENTRY_RELEASE" dist/policylab-web
+            - npx --yes @sentry/cli@latest releases finalize "$SENTRY_RELEASE"
+          artifacts:
+            - dist/policylab-web/**
+
+# Intentionally absent:
+# - automatic execution on default/PR branches;
+# - deployment credentials or endpoint;
+# - production deployment;
+# - `releases deploys ... new`, which belongs only after a successful deploy.
+#
+# Production adaptation must pin an approved CLI version and prevent secured
+# variables from reaching untrusted pull-request code.
